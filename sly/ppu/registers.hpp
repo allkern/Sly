@@ -378,6 +378,7 @@ namespace snes {
                 case PPU_OAMADDL: { oamadd &= 0xff00; oamadd |= value; } break;
                 case PPU_OAMADDH: { oamadd &= 0x00ff; oamadd |= value << 8; } break;
                 case PPU_OAMDATA: {
+                    if (oamadd >= 0x220) return;
                     if (oamadd & 0x1) {
                         oam.at(oamadd - 1) = oam_buf;
                         oam.at(oamadd    ) = value;
@@ -478,7 +479,7 @@ namespace snes {
                 case PPU_OBSEL  : return obsel;
                 case PPU_OAMADDL: return oamadd & 0xff;
                 case PPU_OAMADDH: return (oamadd >> 8) & 0xff;
-                case PPU_OAMDATA: return oam.at(oamadd++);
+                case PPU_OAMDATA: return oamadd < 0x220 ? oam.at(oamadd++) : 0xff;
                 case PPU_BGMODE : return bgmode;
                 case PPU_MOSAIC : return mosaic;
                 case PPU_BG1SC  : return bg1sc;
