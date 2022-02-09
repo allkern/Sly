@@ -31,7 +31,9 @@
 *.out
 *.app
 
+# Etc.
 roms/
 test/
 vram_dump.bin
 ppu_test.cpp
+dumps/
