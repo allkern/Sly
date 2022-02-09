@@ -1,11 +1,9 @@
 #include "cpu/cpu.hpp"
 #include "ppu/ppu.hpp"
-#include "log.hpp"
+#include "../log.hpp"
 
 #include "bus.hpp"
-
-#include "frontend/window.hpp"
-
+#include "window.hpp"
 #include "disasm.hpp"
 
 #include <chrono>
@@ -103,7 +101,7 @@ int main(int argc, const char* argv[]) {
         cpu::fetch();
         cpu::execute();
         ppu::tick(cpu::last_cycles);
-        if ((cpu::base_pc == 0x00a94d) && (cpu::registers::d == 0x100)) start_logging = true;
+        //if ((cpu::base_pc == 0x00a94d) && (cpu::registers::d == 0x100)) start_logging = true;
 
         if (stop_cpu) break;
 

@@ -7,7 +7,8 @@
 
 #include "SDL.h"
 
-#include "../global.hpp"
+#include "../sly/types.hpp"
+#include "../log.hpp"
 
 #define SDL_SHADER_GL_STANDALONE
 #include "SDL_shader.h"

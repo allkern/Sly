@@ -5,7 +5,7 @@
 bool stop_cpu = false, start_logging = false;
 
 #include "types.hpp"
-#include "log.hpp"
+#include "../log.hpp"
 
 snes::u8 nmitimen = 0x0;
 bool fired_nmi = 0x0;

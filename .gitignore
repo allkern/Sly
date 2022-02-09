@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+
+roms/
+test/
+vram_dump.bin
+ppu_test.cpp

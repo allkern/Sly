@@ -1,7 +1,6 @@
 #pragma once
 
-#include "types.hpp"
-#include "log.hpp"
+#include "global.hpp"
 
 #include "cart/cart.hpp"
 #include "wram.hpp"
