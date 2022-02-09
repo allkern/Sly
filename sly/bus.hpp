@@ -16,17 +16,19 @@ namespace snes {
                page = (addr >> 8) & 0xff;
             u16 pb = addr & 0xffff;
 
-            if (BANKS(0x7e, 0x7f)                  ) { /*_log(debug, "addr=%06x, WRAM read", addr);*/ return wram::read(addr); } /* WRAM read */
-            if (BANKS(0x00, 0x3f) && (page <= 0x1f)) { /*_log(debug, "addr=%06x, WRAM mirror", addr);*/ return wram::read(addr); } /* WRAM mirror read */
-            if (BANKS(0x80, 0xbf) && (page <= 0x1f)) { /*_log(debug, "addr=%06x, WRAM mirror", addr);*/ return wram::read(addr); } /* WRAM mirror read */
-            if (BANKS(0x00, 0x3f) && (page == 0x21)) { /*_log(debug, "addr=%06x, PPU read", addr);*/ return ppu::read(addr); } /* PPU read */
-            if (BANKS(0x00, 0x3f) && (page == 0x40)) { /*_log(debug, "addr=%06x, JOYP read", addr);*/ return 0xff; } /* JOYP read */
-            if (BANKS(0x00, 0x3f) && (page == 0x42)) { /*_log(debug, "addr=%06x, CPU read", addr);*/ return internal::read(addr); } /* CPU read */
-            if (BANKS(0x00, 0x3f) && (page == 0x43)) { /*_log(debug, "addr=%06x, CPU read", addr);*/ return internal::read(addr); } /* CPU read */
-            if (BANKS(0x80, 0xbf) && (page <= 0x7f)) { /*_log(debug, "addr=%06x, AUX read", addr);*/ return 0xff; } /* AUX read */
-            if (BANKS(0x00, 0x3f) && (page <= 0x7f)) { /*_log(debug, "addr=%06x, AUX read", addr);*/ return 0xff; } /* AUX read */
+            if (BANKS(0x7e, 0x7f)                  ) { return wram::read(addr); }
+            if (BANKS(0x00, 0x3f) && (page <= 0x1f)) { return wram::read(addr); }
+            if (BANKS(0x80, 0xbf) && (page <= 0x1f)) { return wram::read(addr); }
+            if (BANKS(0x00, 0x3f) && (page == 0x21)) { return ppu::read(addr); }
+            if (BANKS(0x80, 0xbf) && (page == 0x21)) { return ppu::read(addr & 0xffff); }
+            if (BANKS(0x00, 0x3f) && (page == 0x40)) { return 0xff; } /* JOYP read */
+            if (BANKS(0x00, 0x3f) && (page == 0x42)) { return internal::read(addr); }
+            if (BANKS(0x00, 0x3f) && (page == 0x43)) { return internal::read(addr); }
+            if (BANKS(0x80, 0xbf) && (page == 0x42)) { return internal::read(addr & 0xffff); }
+            if (BANKS(0x80, 0xbf) && (page == 0x43)) { return internal::read(addr & 0xffff); }
+            if (BANKS(0x80, 0xbf) && (page <= 0x7f)) { return 0xff; } /* AUX read */
+            if (BANKS(0x00, 0x3f) && (page <= 0x7f)) { return 0xff; } /* AUX read */
 
-            //_log(debug, "addr=%06x, cart read", addr);
             // ROMSEL
             return cart::read(addr);
         }
@@ -36,17 +38,18 @@ namespace snes {
                page = (addr >> 8) & 0xff;
             u16 pb = addr & 0xffff;
 
-            if (BANKS(0x7e, 0x7f)                  ) { /*_log(debug, "addr=%06x, WRAM write", addr); */ wram::write(addr, value); return; } /* WRAM read */
-            if (BANKS(0x00, 0x3f) && (page <= 0x1f)) { /*_log(debug, "addr=%06x, WRAM write", addr); */ wram::write(addr, value); return; } /* WRAM mirror read */
-            if (BANKS(0x80, 0xbf) && (page <= 0x1f)) { /*_log(debug, "addr=%06x, WRAM write", addr); */ wram::write(addr, value); return; } /* WRAM mirror read */
-            if (BANKS(0x00, 0x3f) && (page == 0x21)) { /*_log(debug, "addr=%06x, PPU write", addr);*/ ppu::write(addr, value); return; } /* PPU read */
-            if (BANKS(0x00, 0x3f) && (page == 0x40)) { /*_log(debug, "addr=%06x, JOYP write", addr); */ return; } /* JOYP read */
-            if (BANKS(0x00, 0x3f) && (page == 0x42)) { /*_log(debug, "addr=%06x, CPU write", addr); */ internal::write(addr, value); return; } /* CPU read */
-            if (BANKS(0x00, 0x3f) && (page == 0x43)) { /*_log(debug, "addr=%06x, CPU write", addr); */ internal::write(addr, value); return; } /* CPU read */
-            if (BANKS(0x80, 0xbf) && (page <= 0x7f)) { /*_log(debug, "addr=%06x, AUX write", addr); */ return; } /* AUX read */
-            if (BANKS(0x00, 0x3f) && (page <= 0x7f)) { /*_log(debug, "addr=%06x, AUX write", addr); */ return; } /* AUX read */
-
-            //_log(debug, "addr=%06x, cart write", addr);
+            if (BANKS(0x7e, 0x7f)                  ) { wram::write(addr, value); return; }
+            if (BANKS(0x00, 0x3f) && (page <= 0x1f)) { wram::write(addr, value); return; }
+            if (BANKS(0x80, 0xbf) && (page <= 0x1f)) { wram::write(addr, value); return; }
+            if (BANKS(0x00, 0x3f) && (page == 0x21)) { ppu::write(addr, value); return; }
+            if (BANKS(0x80, 0xbf) && (page == 0x21)) { ppu::write(addr & 0xffff, value); return; }
+            if (BANKS(0x00, 0x3f) && (page == 0x40)) { return; } /* JOYP write */
+            if (BANKS(0x00, 0x3f) && (page == 0x42)) { internal::write(addr, value); return; }
+            if (BANKS(0x00, 0x3f) && (page == 0x43)) { internal::write(addr, value); return; }
+            if (BANKS(0x80, 0xbf) && (page == 0x42)) { internal::write(addr & 0xffff, value); return; }
+            if (BANKS(0x80, 0xbf) && (page == 0x43)) { internal::write(addr & 0xffff, value); return; }
+            if (BANKS(0x80, 0xbf) && (page <= 0x7f)) { return; } /* AUX write */
+            if (BANKS(0x00, 0x3f) && (page <= 0x7f)) { return; } /* AUX write */
 
             // ROMSEL
             return cart::write(addr, value);
@@ -58,26 +61,11 @@ namespace snes {
         }
 
         u16 read16(u32 addr, bool wrap = false) {
-            // if (wrap) {
-            //     u8 bank = addr & 0xff0000;
-            //     u16 addr1 = (addr + 1) & 0xffff;
-
-            //     return (read8(addr) << 8) | read8(bank | addr1);
-            // } else {
             return read8(addr) | (read8(addr + 1) << 8);
-            //}
         }
 
         u32 read24(u32 addr, bool wrap = false) {
-            // if (wrap) {
-            //     u8 bank = addr & 0xff0000;
-            //     u16 addr2 = (addr + 2) & 0xffff;
-
-            //     return (read8(bank | addr2) << 16) | read16(addr);
-            // } else {
-                //if (addr == 0x1a03) _log(debug, "%02x, %02x, %02x", bus::read8(addr-1), bus::read8(addr), bus::read8(addr+1)); 
             return (u32)read8(addr) | ((u32)read8(addr + 1) << 8) | ((u32)read8(addr + 2) << 16);
-            //}
         }
 
         u16 read(u32 addr, bool mode, bool wrap = false) {

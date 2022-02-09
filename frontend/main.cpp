@@ -102,9 +102,9 @@ int main(int argc, const char* argv[]) {
         if (stop_cpu) break;
 
         //start_logging = true;
-        //if (cpu::base_pc == 0x00813c) start_logging = true;
+        //if (cpu::base_pc == 0x809154) start_logging = true;
         //if (cpu::base_pc == 0x008438) start_logging = true;
-        //if (cpu::total_cycles >= 2860951) start_logging = true;
+        //if (cpu::total_cycles >= 8417) start_logging = true;
 
         //if (start_logging) std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }

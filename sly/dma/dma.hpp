@@ -81,16 +81,16 @@ namespace snes {
             // Block WMDATA DMAs
             if (dest == 0x2180) return;
 
-            _log(debug, "Doing DMA: mode=%u, ppu_to_cpu=%u, increment=%u, fixed=%u, source=%06x, dest=%04x, size=%u (%04x)",
-                control & 0x7,
-                ppu_to_cpu,
-                increment,
-                fixed,
-                source,
-                dest,
-                get_channel_count(0),
-                get_channel_count(0)
-            );
+            // _log(debug, "Doing DMA: mode=%u, ppu_to_cpu=%u, increment=%u, fixed=%u, source=%06x, dest=%04x, size=%u (%04x)",
+            //     control & 0x7,
+            //     ppu_to_cpu,
+            //     increment,
+            //     fixed,
+            //     source,
+            //     dest,
+            //     get_channel_count(0),
+            //     get_channel_count(0)
+            // );
 
             // Use do to emulate the count wrapping behavior
             do {
@@ -140,8 +140,8 @@ namespace snes {
 
         u8 read(u16 addr) {
             if ((addr >= 0x4300) && (addr <= 0x437f)) {
-                // _log(debug, "DMA channel %u write reg %u %02x", (addr >> 4) & 0xf, addr & 0xf, value);
                 u8* ptr = reinterpret_cast<u8*>(&channel[(addr >> 4) & 0xf]);
+                //_log(debug, "DMA channel %u read reg %u %02x", (addr >> 4) & 0xf, addr & 0xf, *(ptr + (addr & 0xf)));
 
                 return *(ptr + (addr & 0xf));
             }
@@ -157,7 +157,7 @@ namespace snes {
             }
 
             if ((addr >= 0x4300) && (addr <= 0x437f)) {
-                // _log(debug, "DMA channel %u write reg %u %02x", (addr >> 4) & 0xf, addr & 0xf, value);
+                //_log(debug, "DMA channel %u write reg %u %02x", (addr >> 4) & 0xf, addr & 0xf, value);
                 u8* ptr = reinterpret_cast<u8*>(&channel[(addr >> 4) & 0xf]);
 
                 *(ptr + (addr & 0xf)) = value;

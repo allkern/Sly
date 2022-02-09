@@ -24,14 +24,14 @@ namespace snes {
             brkv = nbrkv;
             copv = ncopv;
 
-            _log(debug, "enmiv=%04x", enmiv);
-            _log(debug, "ebrkv=%04x", ebrkv);
-            _log(debug, "ecopv=%04x", ecopv);
-            _log(debug, "nnmiv=%04x", nnmiv);
-            _log(debug, "nbrkv=%04x", nbrkv);
-            _log(debug, "ncopv=%04x", ncopv);
+            // _log(debug, "enmiv=%04x", enmiv);
+            // _log(debug, "ebrkv=%04x", ebrkv);
+            // _log(debug, "ecopv=%04x", ecopv);
+            // _log(debug, "nnmiv=%04x", nnmiv);
+            // _log(debug, "nbrkv=%04x", nbrkv);
+            // _log(debug, "ncopv=%04x", ncopv);
             pc = bus::read16(0xfffc);
-            _log(debug, "resetv=%04x", pc);
+            // _log(debug, "resetv=%04x", pc);
             sp = 0x1ff;
             p = 0x34;
         }

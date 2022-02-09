@@ -31,14 +31,20 @@ namespace snes {
             if ((rom.at(0x7fd5) & 0x21) == ROM_LOROM) rom_type = ROM_LOROM;
             if (rom.at(0xffd5) == ROM_HIROM) rom_type = ROM_HIROM;
 
-            _log(debug, "ROM type: %s", (rom_type == ROM_LOROM) ? "LoROM" : (rom_type == ROM_HIROM) ? "HiROM" : "Unknown");
-
             u16 header = 0x7fc0 | ((rom_type & 0x1) << 15);
-            _log(debug, "header=%04x", header);
 
             char* rom_name = reinterpret_cast<char*>(&rom.at(header + 0x0));
 
-            _log(debug, "name=%s", rom_name);
+            size_t slp = name.find_last_of('\\');
+
+            if (slp == std::string::npos) slp = name.find_last_of('/');
+            if (slp != std::string::npos) name = name.substr(slp + 1);
+            
+            _log(info, "ROM \"%s\" loaded:\n\tType: %s\n\tName: %s",
+                name.c_str(),
+                (rom_type == ROM_LOROM) ? "LoROM" : (rom_type == ROM_HIROM) ? "HiROM" : "Unknown",
+                rom_name
+            );
 
             return true;
         }
