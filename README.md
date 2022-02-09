@@ -1,5 +1,9 @@
 # Sly
  SNES Emulator and Emulation API written in C++
+ 
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/15825466/153125129-b0b89f73-2236-46c1-8bee-01f4b7d8cf8b.png">
+</p>
 
 ## Current state
 This emulator is in a **really** early stage of development. Only the basics have been implemented:
