@@ -78,16 +78,19 @@ namespace snes {
             u32 source = get_channel_source(ch);
             u16 dest = get_channel_dest(ch);
 
-            // _log(debug, "Doing DMA: mode=%u, ppu_to_cpu=%u, increment=%u, fixed=%u, source=%06x, dest=%04x, size=%u (%04x)",
-            //     control & 0x7,
-            //     ppu_to_cpu,
-            //     increment,
-            //     fixed,
-            //     source,
-            //     dest,
-            //     get_channel_count(0),
-            //     get_channel_count(0)
-            // );
+            // Block WMDATA DMAs
+            if (dest == 0x2180) return;
+
+            _log(debug, "Doing DMA: mode=%u, ppu_to_cpu=%u, increment=%u, fixed=%u, source=%06x, dest=%04x, size=%u (%04x)",
+                control & 0x7,
+                ppu_to_cpu,
+                increment,
+                fixed,
+                source,
+                dest,
+                get_channel_count(0),
+                get_channel_count(0)
+            );
 
             // Use do to emulate the count wrapping behavior
             do {

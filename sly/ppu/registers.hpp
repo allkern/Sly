@@ -406,13 +406,9 @@ namespace snes {
                 case PPU_BG4VOFS: { int s = bg4vofs_latch * 8; bg4vofs &= 0xff << (8 - s); bg4vofs |= value << s; toggle(bg4vofs_latch); return; } break;
                 case PPU_VMAIN  : { vmain = value; return; } break;
                 case PPU_VMADDL : { vmadd &= 0xff00; vmadd |= value; return; } break;
-                case PPU_VMADDH : { vmadd &= 0x00ff; vmadd |= value << 8; return;
-                    //_log(debug, "vmadd=%04x (%04x)", vmadd, get_vmain_remapped_address(vmadd));
-                } break;
+                case PPU_VMADDH : { vmadd &= 0x00ff; vmadd |= value << 8; return; } break;
                 case PPU_VMDATAL: {
                     u16 addr = get_vmain_remapped_address(vmadd);
-                    //if ((addr >= 0x4000) && (addr <= 0x7fff))
-                    //    _log(debug, "writing  low byte %02x at %04x (%04x)", value, vmadd, addr);
                     vram.at(addr) = value;
 
                     bool mode = get_vmain_increment_mode();
@@ -423,8 +419,6 @@ namespace snes {
                 } break;
                 case PPU_VMDATAH: {
                     u16 addr = get_vmain_remapped_address(vmadd) + 1;
-                    //if ((addr >= 0x4000) && (addr <= 0x7fff))
-                    //    _log(debug, "wrote rword %04x at %04x (%04x)", value | (vram.at(addr - 1) << 8), vmadd, addr - 1);
                     vram.at(addr) = value;
 
                     bool mode = get_vmain_increment_mode();

@@ -91,9 +91,6 @@ int main(int argc, const char* argv[]) {
 
     frontend::window::init(3);
 
-    //for (u8& b : ppu::vram) b = rand() & 0xff;
-    //for (u8& b : ppu::cgram) b = rand() & 0xff;
-
     ppu::init(frontend::window::update, cpu::nmi, bus::read8, bus::write8);
 
     while (frontend::window::is_open()) {
@@ -107,7 +104,7 @@ int main(int argc, const char* argv[]) {
         //start_logging = true;
         //if (cpu::base_pc == 0x00813c) start_logging = true;
         //if (cpu::base_pc == 0x008438) start_logging = true;
-        //if (cpu::total_cycles >= 82883) start_logging = true;
+        //if (cpu::total_cycles >= 2860951) start_logging = true;
 
         //if (start_logging) std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
