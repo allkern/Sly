@@ -109,9 +109,15 @@ namespace snes {
         void sla() {
             set_flags(CF, get_sign_a());
 
-            a <<= 1;
-            if (test_flag(MF)) a &= 0xff;
+            u16 s = get_a() << 1;
 
+            if (test_flag(MF)) {
+                a &= 0xff00;
+                a |= s & 0xff;
+            } else {
+                a = s;
+            }
+    
             set_flags(ZF, get_zero_a());
             set_flags(NF, get_sign_a());
         }
@@ -134,8 +140,14 @@ namespace snes {
         void sra() {
             set_flags(CF, a & 0x1);
 
-            a >>= 1;
-            if (test_flag(MF)) a &= 0xff;
+            u16 s = get_a() >> 1;
+
+            if (test_flag(MF)) {
+                a &= 0xff00;
+                a |= s & 0xff;
+            } else {
+                a = s;
+            }
 
             set_flags(ZF, get_zero_a());
             set_flags(NF, false);
@@ -257,8 +269,17 @@ namespace snes {
         void rla() {
             bool carry = get_sign_a();
 
-            a <<= 1;
-            a |= test_flag(CF) ? 1 : 0;
+            u16 r = get_a();
+
+            r <<= 1;
+            r |= test_flag(CF) ? 1 : 0;
+
+            if (test_flag(MF)) {
+                a &= 0xff00;
+                a |= r & 0xff;
+            } else {
+                a = r;
+            }
 
             set_flags(CF, carry);
             set_flags(NF, get_sign_a());
@@ -283,8 +304,17 @@ namespace snes {
         void rra() {
             bool carry = a & 0x1;
 
-            a >>= 1;
-            a |= test_flag(CF) << (test_flag(MF) ? 7 : 15);
+            u16 r = get_a();
+
+            r >>= 1;
+            r |= test_flag(CF) << (test_flag(MF) ? 7 : 15);
+
+            if (test_flag(MF)) {
+                a &= 0xff00;
+                a |= r & 0xff;
+            } else {
+                a = r;
+            }
 
             set_flags(CF, carry);
             set_flags(NF, get_sign_a());

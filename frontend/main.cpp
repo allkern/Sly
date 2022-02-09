@@ -100,8 +100,7 @@ int main(int argc, const char* argv[]) {
         if (start_logging) { log_cpu_state(); }
         cpu::fetch();
         cpu::execute();
-        ppu::tick(cpu::last_cycles);
-        //if ((cpu::base_pc == 0x00a94d) && (cpu::registers::d == 0x100)) start_logging = true;
+        ppu::tick(cpu::last_cycles << 3);
 
         if (stop_cpu) break;
 

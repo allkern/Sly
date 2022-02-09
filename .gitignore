@@ -37,3 +37,4 @@ test/
 vram_dump.bin
 ppu_test.cpp
 dumps/
+screenshots/

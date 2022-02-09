@@ -71,6 +71,7 @@
         "xstddef": "cpp",
         "xtr1common": "cpp",
         "xtree": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "stop_token": "cpp"
     }
 }

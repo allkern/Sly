@@ -142,6 +142,7 @@ namespace snes {
 
                 return *(ptr + (addr & 0xf));
             }
+            return 0xff;
         }
 
         void write(u16 addr, u8 value) {

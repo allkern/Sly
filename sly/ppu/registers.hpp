@@ -100,6 +100,8 @@ namespace snes {
         bus_read_t bus_read;
         bus_write_t bus_write;
 
+        bool initialized = false;
+
         u8 inidisp,
            obsel,
            oamaddl,
@@ -300,6 +302,10 @@ namespace snes {
             return (obsel & 0x7) << 14;
         }
 
+        inline bool get_bg_tile_size(int bg) {
+            return (bgmode >> 4) & (1 << bg);
+        }
+
         enum vmain_increment_mode_t : bool {
             IM_W18R39,
             IM_W19R3A
@@ -355,7 +361,10 @@ namespace snes {
         }
 
         u16 cgadd = 0x0;
+        u16 oamadd = 0x0;
         u32 wmadd = 0x0;
+        u8 oam_buf = 0x0;
+        int oam_inc = 0x0;
 
         void write(u16 addr, u8 value) {
             if (addr == 0x2140) return apu::write(addr, value);
@@ -364,11 +373,20 @@ namespace snes {
             if (addr == 0x2143) return apu::write(addr, value);
 
             switch (addr & 0xff) {
-                case PPU_INIDISP: { inidisp = value; return; } break;
+                case PPU_INIDISP: { inidisp = value; initialized = true; return; } break;
                 case PPU_OBSEL  : { obsel   = value; return; } break;
-                case PPU_OAMADDL: { oamaddl = value; return; } break;
-                case PPU_OAMADDH: { oamaddh = value; return; } break;
-                case PPU_OAMDATA: { oamdata = value; return; } break;
+                case PPU_OAMADDL: { oamadd &= 0xff00; oamadd |= value; } break;
+                case PPU_OAMADDH: { oamadd &= 0x00ff; oamadd |= value << 8; } break;
+                case PPU_OAMDATA: {
+                    if (oamadd & 0x1) {
+                        oam.at(oamadd - 1) = oam_buf;
+                        oam.at(oamadd    ) = value;
+                        oamadd++;
+                    } else {
+                        oam_buf = value;
+                        oamadd++;
+                    }
+                } break;
                 case PPU_BGMODE : { bgmode  = value; return; } break;
                 case PPU_MOSAIC : { mosaic  = value; return; } break;
                 case PPU_BG1SC  : { bg1sc   = value; return; } break;
@@ -458,9 +476,9 @@ namespace snes {
             switch (addr & 0xff) {
                 case PPU_INIDISP: return inidisp;
                 case PPU_OBSEL  : return obsel;
-                case PPU_OAMADDL: return oamaddl;
-                case PPU_OAMADDH: return oamaddh;
-                case PPU_OAMDATA: return oamdata;
+                case PPU_OAMADDL: return oamadd & 0xff;
+                case PPU_OAMADDH: return (oamadd >> 8) & 0xff;
+                case PPU_OAMDATA: return oam.at(oamadd++);
                 case PPU_BGMODE : return bgmode;
                 case PPU_MOSAIC : return mosaic;
                 case PPU_BG1SC  : return bg1sc;

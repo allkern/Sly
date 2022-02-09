@@ -13,6 +13,11 @@
 #define SDL_SHADER_GL_STANDALONE
 #include "SDL_shader.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_RESIZE_IMPLEMENTATION
+#include "stb_image_write.h"
+#include "stb_image_resize.h"
+
 #include <chrono>
 #include <unordered_map>
 #include <vector>
@@ -105,7 +110,7 @@ namespace frontend {
             window_scale = scale;
 
             window = SDL_CreateWindow(
-                "SNES",
+                "Sly",
                 SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                 PPU_WIDTH * scale, PPU_HEIGHT * scale,
                 SDL_WINDOW_OPENGL
@@ -168,11 +173,18 @@ namespace frontend {
         float time = 0.0;
 
         void update(uint32_t* buf) {
+            frames_rendered++;
             end = std::chrono::high_resolution_clock::now();
 
             std::chrono::duration <double> d = end - start;
 
             if (std::chrono::duration_cast<std::chrono::seconds>(d).count() == 1) {
+                static char buf[100];
+
+                std::sprintf(&buf[0], "Sly fps: %u", frontend::window::get_fps());
+
+                SDL_SetWindowTitle(frontend::window::window, buf);
+
                 fps = frames_rendered;
                 frames_rendered = 0;
                 start = std::chrono::high_resolution_clock::now();
@@ -183,7 +195,6 @@ namespace frontend {
 
             if (shader_stack_available && ntsc_codec_enabled) {
                 scale_and_flip_buf(buf, window_scale);
-                //_log(debug, "buffers[0]=%08x", buf[0]);
 
                 SDL_ShaderBindRawTexture(encoder, scaled.data(), PPU_WIDTH * window_scale, PPU_HEIGHT * window_scale);
                 SDL_ShaderSetUniform1I(encoder, "iFrame", frames_rendered);
@@ -253,8 +264,6 @@ namespace frontend {
                 SDL_RenderPresent(renderer);
             }
 
-            frames_rendered++;
-
             SDL_Event event;
 
             while (SDL_PollEvent(&event)) {
@@ -266,6 +275,29 @@ namespace frontend {
                         }
                         if (event.key.keysym.sym == SDLK_F2) {
                             ntsc_codec_enabled = !ntsc_codec_enabled;
+                        }
+                        if (event.key.keysym.sym == SDLK_F3) {
+                            std::vector <uint32_t> alt;
+
+                            alt.resize((PPU_WIDTH * window_scale) * (PPU_HEIGHT * window_scale));
+
+                            stbir_resize_uint8(
+                                reinterpret_cast<unsigned char*>(buf),
+                                PPU_WIDTH, PPU_HEIGHT,
+                                PPU_WIDTH * 4,
+                                reinterpret_cast<unsigned char*>(alt.data()),
+                                PPU_WIDTH * window_scale, PPU_HEIGHT * window_scale,
+                                PPU_WIDTH * window_scale * 4,
+                                4
+                            );
+
+                            stbi_write_png(
+                                "screenshots/ss.png",
+                                PPU_WIDTH * window_scale, PPU_HEIGHT * window_scale,
+                                4,
+                                reinterpret_cast<unsigned char*>(alt.data()),
+                                PPU_WIDTH * window_scale * 4
+                            );
                         }
 
                         switch (event.key.keysym.sym) {

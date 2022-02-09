@@ -8,7 +8,11 @@
 
 #include "immintrin.h"
 
+#include "omp.h"
+
 #include <cmath>
+
+#define BGPIXEL 10000
 
 namespace snes {
     namespace ppu {
@@ -30,8 +34,10 @@ namespace snes {
         tile_t get_tile_index(int x, int y, int bg) {
             int size = get_bg_size(bg);
 
-            int tx = x >> 3,
-                ty = y >> 3;
+            bool tiles16x16 = get_bg_tile_size(bg); 
+
+            int tx = x >> (tiles16x16 ? 4 : 3),
+                ty = y >> (tiles16x16 ? 4 : 3);
 
             switch (size) {
                 case BG_32x32: return { tx & 0x1f, ty & 0x1f, 0                                            };
@@ -49,25 +55,35 @@ namespace snes {
             return base + (tile.iy << 6) + (tile.ix << 1);
         }
 
-        u16 get_char_addr_impl(int n, int y, bool flip, int bpp, u16 base) {
-            y = flip ? (7 - y) : y;
+        u16 get_char_addr_impl(int n, int x, int y, bool flip, int bpp, u16 base, bool t16) {
+            y = flip ? ((t16 ? 15 : 7) - y) : y;
+
+            if (y > 7) n += 0x10;
+            if (x > 7) n += 1;
 
             int shift = 4 + (bpp >> 2);
 
-            return base + (n << shift) + (y << 1);
+            return base + (n << shift) + ((y % 8) << 1);
         }
 
-        u16 get_char_addr(int n, int y, bool flip, int bg) {
-            return get_char_addr_impl(n, y, flip, get_bg_bpp(bg), get_bg_char_addr(bg));
+        u16 get_char_addr(int n, int x, int y, bool flip, int bg) {
+            return get_char_addr_impl(n, x, y, flip, get_bg_bpp(bg), get_bg_char_addr(bg), get_bg_tile_size(bg));
         }
 
-        int get_pixel_index(u16 addr, int p, bool flip, int bpp) {
-            u64 row, mask = flip ? (0x0101010101010101ull << p) : (0x8080808080808080ull >> p);
+        u64 get_char_data(u16 addr, int bpp) {
+            u64 data = 0;
 
             switch (bpp) {
-                case F2BPP: { row = (vram[addr + 1] << 8) | vram[addr]; } break;
-                case F4BPP: { row = (vram[addr + 1] << 8) | vram[addr] | (vram[addr + 0x10 + 1] << 24) | (vram[addr + 0x10] << 16); } break;
+                case F2BPP: { data = (vram[addr + 1] << 8) | vram[addr]; } break;
+                case F4BPP: { data = (vram[addr + 1] << 8) | vram[addr] | (vram[addr + 0x10 + 1] << 24) | (vram[addr + 0x10] << 16); } break;
             }
+
+            return data;
+        }
+
+        int get_pixel_index(u64 data, int p, bool flip, int bpp) {
+            u64 row = data,
+                mask = flip ? (0x0101010101010101ull << p) : (0x8080808080808080ull >> p);
 
             return _pext_u64(row, mask) & ((1 << bpp) - 1);
         }
@@ -99,29 +115,50 @@ namespace snes {
             return (cgram[offset + 1] << 8) | cgram[offset];
         }
 
+        namespace current {
+            tile_t tile;
+            u16 addr, prev;
+            u16 data;
+            bool fliph,
+                 flipv,
+                 priority;
+            int  palette,
+                 number;
+            u16  char_addr;
+            u64  char_data;
+        }
+
+        void refetch(int sx, int sy, int px, int py, int bg) {
+            current::tile      = get_tile_index(sx, sy, bg);
+            current::prev      = current::addr;
+            current::addr      = get_tile_addr(current::tile, bg);
+
+            if (current::addr == current::prev) return;
+
+            current::data      = (vram[current::addr + 1] << 8) | vram[current::addr];
+            current::fliph     = (current::data >> 14) & 0x1,
+            current::flipv     = (current::data >> 15) & 0x1,
+            current::priority  = (current::data >> 13) & 0x1;
+            current::palette   = (current::data >> 10) & 0x7,
+            current::number    = current::data & 0x3ff;
+            current::char_addr = get_char_addr(current::number, px, py, current::flipv, bg);
+            current::char_data = get_char_data(current::char_addr, get_bg_bpp(bg));
+        }
+
         snes_pixel_t render_bg_pixel(int x, int y, int bg) {
             int sx = x + get_bg_hofs(bg),
                 sy = y + get_bg_vofs(bg);
-            
-            int px = sx % 8,
-                py = sy % 8;
 
-            tile_t tile = get_tile_index(sx, sy, bg);
+            bool t16 = get_bg_tile_size(bg);
 
-            u16 addr = get_tile_addr(tile, bg);
-            u16 td = (vram[addr + 1] << 8) | vram[addr];
+            int px = sx % (t16 ? 16 : 8),
+                py = sy % (t16 ? 16 : 8);
 
-            bool fliph = (td >> 14) & 0x1,
-                 flipv = (td >> 15) & 0x1,
-                 priority = (td >> 13) & 0x1;
-            int  palette = (td >> 10) & 0x7,
-                 number = td & 0x3ff;
-            
-            u16 caddr = get_char_addr(number, py, flipv, bg);
+            refetch(sx, sy, px, py, bg);
 
-            int pidx = get_pixel_index(caddr, px, fliph, get_bg_bpp(bg));
+            int pidx = get_pixel_index(current::char_data, px % 8, current::fliph, get_bg_bpp(bg));
 
-            return { pidx, palette, get_bg_bpp(bg), priority };
+            return { pidx, current::palette, get_bg_bpp(bg), current::priority };
         }
 
         snes_pixel_t render_sprite_pixel(int);
@@ -202,26 +239,26 @@ namespace snes {
             for (int index = 0; index < queued_sprites.size(); index++) {
                 auto sprite = queued_sprites.at(index);
 
-                //if (((sprite.a >> 1) & 0x7) != priority) continue;
                 if (!(sx >= sprite.x1)) continue;
                 if (!(sx < sprite.x2)) continue;
 
                 int px = sx - sprite.x1,
                     py = sprite.y;
 
-                //_log(debug, "sprite.s=%u", sprite.s);
                 if ((sprite.a & 0b01000000) && (sprite.s >= 16))
                     px = (sprite.s - 1) - px;
 
                 u16 caddr = get_char_addr_impl(
                     sprite.t + (px >> 3) + ((py >> 3) << 4),
+                    px % 8,
                     py % 8,
                     sprite.a & 0b10000000,
                     F4BPP,
-                    primary_oam_addr
+                    primary_oam_addr,
+                    false
                 );
 
-                int pidx = get_pixel_index(caddr, px, (sprite.a & 0b01000000) && (sprite.s == 8), F4BPP);
+                int pidx = get_pixel_index(get_char_data(caddr, F4BPP), px, (sprite.a & 0b01000000) && (sprite.s == 8), F4BPP);
 
                 if (!pidx) continue;
 
@@ -280,15 +317,16 @@ namespace snes {
         void render() {
             int mode = get_bg_mode();
 
+            #pragma omp parallel for
             for (int y = 0; y < PPU_HEIGHT; y++) {
                 queue_scanline_sprites(y);
-
+                
                 for (int x = 0; x < PPU_WIDTH; x++) {
                     snes_pixel_t fp = render_final_pixel(x, y, mode);
 
                     u16 color = get_pixel_snes_color(fp);
 
-                    if (fp.index == 10000) color = (cgram[1] << 8) | cgram[0];
+                    if (fp.index == BGPIXEL) color = (cgram[1] << 8) | cgram[0];
 
                     //_log(debug, "color=%04x", color);
                     frame.draw(x, y, rgb555_to_rgba8888(color));
@@ -297,7 +335,9 @@ namespace snes {
         }
 
         int h = 0;
+        int px = 0, py = 0;
         int v = 0;
+        int frameskip = 2;
 
         void tick(int lc) {
             if (dump_vram) {
@@ -330,18 +370,22 @@ namespace snes {
                 int  palette = (td >> 10) & 0x7,
                     number = td & 0x3ff;
                 
-                u16 caddr = get_char_addr(number, 0, flipv, BG2);
+                u16 caddr = get_char_addr(number, 0, 0, flipv, BG2);
                 _log(debug, "tile_addr=%04x, td=%04x, number=%04x, caddr=%04x", addr, td, number, caddr);
 
                 dump_vram = false;
             };
 
+            int xb = px;
             h += lc;
+            px += lc >> 2;
 
             if (h >= 1364) {
+                px = 0;
                 h -= 1364;
 
                 v++;
+                py++;
 
                 if (v == 225 && (!fired_nmi)) {
                     fired_nmi = true;
@@ -349,10 +393,12 @@ namespace snes {
                     frame_ready_cb(frame.get_buffer());
                     nmi_cb();
                     v = 0;
+                    py = 0;
                 }
                 if (v == 263) {
                     fired_nmi = false;
                     v = 0;
+                    py = 0;
                 }
             }
 

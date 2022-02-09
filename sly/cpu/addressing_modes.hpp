@@ -76,8 +76,6 @@ namespace snes {
             address = bus::read24(address) + y;
             u32 old_address = address - y;
             u8 value = bus::read8(address);
-            if (d == 0x100) _log(debug, "dly imm=%02x, d=%04x, y=%04x, address-y=%06x, address=%06x, value=%02x", bus::read8(pc - 1), d, y, old_address, address, value);
-            //address -= 0x10;
             if (d & 0xff) additional_cycles += 1;
         }
 
