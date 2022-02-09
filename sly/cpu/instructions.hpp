@@ -16,10 +16,11 @@ namespace snes {
 
         void nmi() {
             if (!(nmitimen & 0x80)) { return; }
-            //start_logging = true;
+
+            waiting = false;
+
             push(p, true);
 
-            //pc -= 1;
             bus::write24(sp - 2, pc);
 
             sp -= 3;
@@ -60,6 +61,8 @@ namespace snes {
             _log(warning, "Warning: BRK executed @ pc=%06x tc=%u", pc, total_cycles);
             push(p, true);
 
+            waiting = false;
+
             pc += 1;
             bus::write24(sp - 2, pc);
 
@@ -71,6 +74,8 @@ namespace snes {
         void cop() {
             _log(warning, "Warning: COP executed");
             push(p, true);
+
+            waiting = false;
 
             pc += 1;
             bus::write24(sp - 2, pc);
@@ -468,7 +473,7 @@ namespace snes {
             set_flags(NF, get_sign_y());
         }
 
-        void wai() { _log(debug, "Unimplemented instruction WAI"); } // To-do
+        void wai() { waiting = true; } // To-do
 
         bool test_signed_overflow_add8(u8 prev, u8 value, u8 current) {
             bool ps = prev & 0x80,

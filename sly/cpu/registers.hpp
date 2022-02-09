@@ -66,6 +66,8 @@ namespace snes {
 
         u64 total_cycles = 0;
 
+        bool waiting = false;
+
         u16 enmiv,
             eirqv,
             ebrkv,

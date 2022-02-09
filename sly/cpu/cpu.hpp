@@ -39,6 +39,8 @@ namespace snes {
         opcode_t instruction;
 
         void fetch() {
+            if (waiting) return;
+
             base_pc = registers::pc;
             opcode = bus::read8(registers::pc++);
             full_opcode = bus::read24(registers::pc) << 8;
@@ -48,6 +50,8 @@ namespace snes {
         }
 
         void execute() {
+            if (waiting) { last_cycles = 2; return; }
+
             instruction.addressing_mode();
             instruction.operation();
 
