@@ -35,8 +35,9 @@ namespace snes {
             int size = get_bg_size(bg);
 
             bool tiles16x16 = get_bg_tile_size(bg); 
+            bool tiles_wide = get_wide_mode();
 
-            int tx = x >> (tiles16x16 ? 4 : 3),
+            int tx = x >> ((tiles16x16 || tiles_wide) ? 4 : 3),
                 ty = y >> (tiles16x16 ? 4 : 3);
 
             switch (size) {
@@ -76,6 +77,17 @@ namespace snes {
             switch (bpp) {
                 case F2BPP: { data = (vram[addr + 1] << 8) | vram[addr]; } break;
                 case F4BPP: { data = (vram[addr + 1] << 8) | vram[addr] | (vram[addr + 0x10 + 1] << 24) | (vram[addr + 0x10] << 16); } break;
+                case F8BPP: {
+                    data =
+                        ((u64)vram[addr + 0x0  + 0] << 0 ) |
+                        ((u64)vram[addr + 0x0  + 1] << 8 ) |
+                        ((u64)vram[addr + 0x10 + 0] << 16) |
+                        ((u64)vram[addr + 0x10 + 1] << 24) |
+                        ((u64)vram[addr + 0x20 + 0] << 32) |
+                        ((u64)vram[addr + 0x20 + 1] << 40) |
+                        ((u64)vram[addr + 0x30 + 0] << 48) |
+                        ((u64)vram[addr + 0x30 + 1] << 56);
+                }
             }
 
             return data;
@@ -151,7 +163,7 @@ namespace snes {
 
             bool t16 = get_bg_tile_size(bg);
 
-            int px = sx % (t16 ? 16 : 8),
+            int px = sx % ((t16 || get_pseudo_hires()) ? 16 : 8),
                 py = sy % (t16 ? 16 : 8);
 
             refetch(sx, sy, px, py, bg);
@@ -209,7 +221,22 @@ namespace snes {
                     if ((sprp.sprite_priority == 0) && sprp.index && spren) return sprp;
                     if ((!bg3p.priority) && bg3p.index && bg3en) return bg3p;
 
-                    return { 10000, 0, 0, 0 };
+                    return { BGPIXEL, 0, 0, 0 };
+                } break;
+                case BG_MODE2: {
+                    snes_pixel_t sprp = render_sprite_pixel(x);
+                    if ((sprp.sprite_priority == 3) && sprp.index && spren) return sprp;
+                    snes_pixel_t bg1p = render_bg_pixel(x, y, BG1);
+                    if (bg1p.priority && bg1p.index && bg1en) return bg1p;
+                    if ((sprp.sprite_priority == 2) && sprp.index && spren) return sprp;
+                    snes_pixel_t bg2p = render_bg_pixel(x, y, BG2);
+                    if (bg2p.priority && bg2p.index && bg2en) return bg2p;
+                    if ((sprp.sprite_priority == 1) && sprp.index && spren) return sprp;
+                    if ((!bg1p.priority) && bg1p.index && bg1en) return bg1p;
+                    if ((sprp.sprite_priority == 0) && sprp.index && spren) return sprp;
+                    if ((!bg2p.priority) && bg2p.index && bg2en) return bg2p;
+
+                    return { BGPIXEL, 0, 0, 0 };
                 } break;
                 case BG_MODE3: {
                     snes_pixel_t sprp = render_sprite_pixel(x);
@@ -223,8 +250,52 @@ namespace snes {
                     if ((!bg1p.priority) && bg1p.index && bg1en) return bg1p;
                     if ((sprp.sprite_priority == 0) && sprp.index && spren) return sprp;
                     if ((!bg2p.priority) && bg2p.index && bg2en) return bg2p;
-                    return { 10000, 0, 0, 0 };
+
+                    return { BGPIXEL, 0, 0, 0 };
                 } break;
+                case BG_MODE4: {
+                    snes_pixel_t sprp = render_sprite_pixel(x);
+                    if ((sprp.sprite_priority == 3) && sprp.index && spren) return sprp;
+                    snes_pixel_t bg1p = render_bg_pixel(x, y, BG1);
+                    if (bg1p.priority && bg1p.index && bg1en) return bg1p;
+                    if ((sprp.sprite_priority == 2) && sprp.index && spren) return sprp;
+                    snes_pixel_t bg2p = render_bg_pixel(x, y, BG2);
+                    if (bg2p.priority && bg2p.index && bg2en) return bg2p;
+                    if ((sprp.sprite_priority == 1) && sprp.index && spren) return sprp;
+                    if ((!bg1p.priority) && bg1p.index && bg1en) return bg1p;
+                    if ((sprp.sprite_priority == 0) && sprp.index && spren) return sprp;
+                    if ((!bg2p.priority) && bg2p.index && bg2en) return bg2p;
+
+                    return { BGPIXEL, 0, 0, 0 };
+                } break;
+                case BG_MODE5: {
+                    snes_pixel_t sprp = render_sprite_pixel(x);
+                    if ((sprp.sprite_priority == 3) && sprp.index && spren) return sprp;
+                    snes_pixel_t bg1p = render_bg_pixel(x, y, BG1);
+                    if (bg1p.priority && bg1p.index && bg1en) return bg1p;
+                    if ((sprp.sprite_priority == 2) && sprp.index && spren) return sprp;
+                    snes_pixel_t bg2p = render_bg_pixel(x, y, BG2);
+                    if (bg2p.priority && bg2p.index && bg2en) return bg2p;
+                    if ((sprp.sprite_priority == 1) && sprp.index && spren) return sprp;
+                    if ((!bg1p.priority) && bg1p.index && bg1en) return bg1p;
+                    if ((sprp.sprite_priority == 0) && sprp.index && spren) return sprp;
+                    if ((!bg2p.priority) && bg2p.index && bg2en) return bg2p;
+
+                    return { BGPIXEL, 0, 0, 0 };
+                } break;
+                case BG_MODE6: {
+                    snes_pixel_t sprp = render_sprite_pixel(x);
+                    if ((sprp.sprite_priority == 3) && sprp.index && spren) return sprp;
+                    snes_pixel_t bg1p = render_bg_pixel(x, y, BG1);
+                    if (bg1p.priority && bg1p.index && bg1en) return bg1p;
+                    if ((sprp.sprite_priority == 2) && sprp.index && spren) return sprp;
+                    if ((sprp.sprite_priority == 1) && sprp.index && spren) return sprp;
+                    if ((!bg1p.priority) && bg1p.index && bg1en) return bg1p;
+                    if ((sprp.sprite_priority == 0) && sprp.index && spren) return sprp;
+
+                    return { BGPIXEL, 0, 0, 0 };
+                } break;
+
                 default: break;
             }
 
@@ -307,29 +378,35 @@ namespace snes {
                 // Append high tile bit
                 t |= (a & 0x1) << 8;
 
-                //_log(debug, "pushed sprite, x=%u, x2=%u, y=%u, t=%03x, a=%02x, l=%u", x, x2, l - y, t, a, l);
                 queued_sprites.push_back(queued_sprite_t{ x, x2, l - y, l, t, a, s ? gss.bigh : gss.smallh });
             }
-
-            //_log(debug, "queued %u sprites for scanline %u", queued_sprites.size(), l);
+        }
+        
+        inline void draw(int x, int y, uint32_t color, bool hi) {
+            if (hi) {
+                hires.draw(x, y, color);
+            } else {
+                frame.draw(x, y, color);
+            }
         }
 
         void render() {
             int mode = get_bg_mode();
 
+            bool pseudo_hires = get_pseudo_hires();
+
             #pragma omp parallel for
             for (int y = 0; y < PPU_HEIGHT; y++) {
                 queue_scanline_sprites(y);
                 
-                for (int x = 0; x < PPU_WIDTH; x++) {
+                for (int x = 0; x < (pseudo_hires ? PPU_WIDTH_HIRES : PPU_WIDTH); x++) {
                     snes_pixel_t fp = render_final_pixel(x, y, mode);
 
                     u16 color = get_pixel_snes_color(fp);
 
                     if (fp.index == BGPIXEL) color = (cgram[1] << 8) | cgram[0];
 
-                    //_log(debug, "color=%04x", color);
-                    frame.draw(x, y, rgb555_to_rgba8888(color));
+                    draw(x, y, rgb555_to_rgba8888(color), pseudo_hires);
                 }
             }
         }
@@ -377,7 +454,7 @@ namespace snes {
             };
 
             int xb = px;
-            h += lc;
+            h += lc << 3;
             px += lc >> 2;
 
             if (h >= 1364) {
@@ -388,9 +465,10 @@ namespace snes {
                 py++;
 
                 if (v == 225 && (!fired_nmi)) {
+                    bool pseudo_hires = get_pseudo_hires();
                     fired_nmi = true;
                     render();
-                    frame_ready_cb(frame.get_buffer());
+                    frame_ready_cb(pseudo_hires ? hires.get_buffer() : frame.get_buffer(), pseudo_hires);
                     nmi_cb();
                     v = 0;
                     py = 0;

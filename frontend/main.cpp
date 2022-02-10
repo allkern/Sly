@@ -97,7 +97,7 @@ int main(int argc, const char* argv[]) {
         if (start_logging) { log_cpu_state(); }
         cpu::fetch();
         cpu::execute();
-        ppu::tick(cpu::last_cycles << 3);
+        ppu::tick(cpu::last_cycles);
 
         if (stop_cpu) break;
 

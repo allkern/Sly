@@ -9,6 +9,7 @@
 #include "lgw/framebuffer.hpp"
 
 #define PPU_WIDTH 256
+#define PPU_WIDTH_HIRES 512
 #define PPU_HEIGHT 224
 
 #define PPU_INIDISP     0x00
@@ -89,8 +90,9 @@ namespace snes {
         std::vector <queued_sprite_t> queued_sprites;
 
         lgw::framebuffer <PPU_WIDTH, PPU_HEIGHT> frame;
+        lgw::framebuffer <PPU_WIDTH_HIRES, PPU_HEIGHT> hires;
 
-        typedef void (*frame_ready_cb_t)(uint32_t*);
+        typedef void (*frame_ready_cb_t)(uint32_t*, int);
         typedef void (*nmi_cb_t)(void);
         typedef u8 (*bus_read_t)(u32);
         typedef void (*bus_write_t)(u32, u8);
@@ -304,6 +306,14 @@ namespace snes {
 
         inline bool get_bg_tile_size(int bg) {
             return (bgmode >> 4) & (1 << bg);
+        }
+
+        inline bool get_wide_mode() {
+            return get_bg_mode() == BG_MODE5;
+        }
+
+        inline bool get_pseudo_hires() {
+            return get_bg_mode() == BG_MODE5;
         }
 
         enum vmain_increment_mode_t : bool {

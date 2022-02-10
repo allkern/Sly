@@ -172,7 +172,31 @@ namespace frontend {
 
         float time = 0.0;
 
-        void update(uint32_t* buf) {
+        void set_texture_xres(int xres) {
+            int w = 0;
+
+            SDL_QueryTexture(texture, nullptr, nullptr, &w, nullptr);
+
+            if (w != xres) {
+                SDL_DestroyTexture(texture);
+
+                texture = SDL_CreateTexture(
+                    renderer,
+                    SDL_PIXELFORMAT_RGBA8888,
+                    SDL_TEXTUREACCESS_STREAMING,
+                    xres, PPU_HEIGHT
+                );
+            }
+        }
+
+        int old_hires = 0;
+
+        void update(uint32_t* buf, int hires) {
+            if (old_hires != hires)
+                set_texture_xres(hires ? PPU_WIDTH_HIRES : PPU_WIDTH);
+
+            old_hires = hires;
+
             frames_rendered++;
             end = std::chrono::high_resolution_clock::now();
 
@@ -252,7 +276,7 @@ namespace frontend {
                     texture,
                     NULL,
                     buf,
-                    PPU_WIDTH * sizeof(uint32_t)
+                    (hires ? PPU_WIDTH_HIRES : PPU_WIDTH) * sizeof(uint32_t)
                 );
 
                 SDL_RenderCopy(renderer, texture, NULL, NULL);
