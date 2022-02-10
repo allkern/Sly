@@ -9,15 +9,15 @@
 This emulator is in a **really** early stage of development. Only the basics have been implemented:
 
  - CPU
-   - All instructions except `stp` and `wai`
+   - All instructions except `stp`
    - Basic interrupt handling
    - No emulation mode
  - PPU
-   - Basic 2 or 4 BPP rendering
+   - 2, 4 and 8 BPP rendering
    - Basic timing (NMI only)
-   - Modes 0, 1, 3
+   - All modes except mode 7
  - Cartridge
-   - LoROM supported only
+   - LoROM, broken HiROM support
  - DMA
    - All GPDMA modes supported
    - HDMA not supported
