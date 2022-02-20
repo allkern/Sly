@@ -75,8 +75,18 @@ namespace snes {
             u64 data = 0;
 
             switch (bpp) {
-                case F2BPP: { data = (vram[addr + 1] << 8) | vram[addr]; } break;
-                case F4BPP: { data = (vram[addr + 1] << 8) | vram[addr] | (vram[addr + 0x10 + 1] << 24) | (vram[addr + 0x10] << 16); } break;
+                case F2BPP: {
+                    data =
+                        ((u16)vram[addr + 0x00 + 0] << 0) |
+                        ((u16)vram[addr + 0x00 + 1] << 8);
+                } break;
+                case F4BPP: {
+                    data =
+                        ((u32)vram[addr + 0x00 + 0] << 0 ) |
+                        ((u32)vram[addr + 0x00 + 1] << 8 ) |
+                        ((u32)vram[addr + 0x10 + 0] << 16) |
+                        ((u32)vram[addr + 0x10 + 1] << 24);
+                } break;
                 case F8BPP: {
                     data =
                         ((u64)vram[addr + 0x0  + 0] << 0 ) |
@@ -87,7 +97,7 @@ namespace snes {
                         ((u64)vram[addr + 0x20 + 1] << 40) |
                         ((u64)vram[addr + 0x30 + 0] << 48) |
                         ((u64)vram[addr + 0x30 + 1] << 56);
-                }
+                } break;
             }
 
             return data;
@@ -173,6 +183,39 @@ namespace snes {
             return { pidx, current::palette, get_bg_bpp(bg), current::priority };
         }
 
+        snes_pixel_t render_mode7_pixel(int x, int y) {
+            double xi = ((double)x) / 256.0,
+                   yi = ((double)y) / 256.0,
+                   ai = ((double)(i16)m7a) / 256.0,
+                   bi = ((double)(i16)m7b) / 256.0,
+                   ci = ((double)(i16)m7c) / 256.0,
+                   di = ((double)(i16)m7d) / 256.0,
+                   x0i = ((double)(i16)m7x) / 256.0,
+                   y0i = ((double)(i16)m7y) / 256.0,
+                   hi = ((double)(i16)m7h) / 256.0,
+                   vi = ((double)(i16)m7v) / 256.0;
+
+            double xh0 = (xi + hi - x0i),
+                   yv0 = (yi + vi - y0i);
+
+            double mx = ai * xh0 + bi * yv0 + x0i,
+                   my = ci * xh0 + di * yv0 + y0i;
+            //if (mx || my) _log(debug, "mx=%f, my=%f", mx, my);
+
+            int px = (int)(mx * 256.0) >> 3,
+                py = (int)(my * 256.0) >> 3;
+            
+            u8 tile = vram.at(((px + (py * 128)) << 1) + 1);
+
+            u16 tile_base = tile * 0x80;
+
+            int pixel_offset = (x % 8) << 1;
+
+            u8 palette_index = vram.at(tile_base + pixel_offset);
+
+            return { palette_index, 0, F8BPP, false, 0 };
+        }
+
         snes_pixel_t render_sprite_pixel(int);
 
         snes_pixel_t render_final_pixel(int x, int y, int mode) { 
@@ -214,12 +257,12 @@ namespace snes {
                     snes_pixel_t bg2p = render_bg_pixel(x, y, BG2);
                     if (bg2p.priority && bg2p.index && bg2en) return bg2p;
                     if ((sprp.sprite_priority == 2) && sprp.index && spren) return sprp;
-                    if ((!bg1p.priority) && bg1p.index && bg1en) return bg1p;
-                    if ((!bg2p.priority) && bg2p.index && bg2en) return bg2p;
+                    if (bg1p.index && bg1en) return bg1p;
+                    if (bg2p.index && bg2en) return bg2p;
                     if ((sprp.sprite_priority == 1) && sprp.index && spren) return sprp;
-                    if (bg3p.priority && (!((bgmode >> 3) & 0x1)) && bg3p.index && bg3en) return bg3p;
+                    if (bg3p.priority && bg3p.index && bg3en) return bg3p;
                     if ((sprp.sprite_priority == 0) && sprp.index && spren) return sprp;
-                    if ((!bg3p.priority) && bg3p.index && bg3en) return bg3p;
+                    if (bg3p.index && bg3en) return bg3p;
 
                     return { BGPIXEL, 0, 0, 0 };
                 } break;
@@ -295,6 +338,17 @@ namespace snes {
 
                     return { BGPIXEL, 0, 0, 0 };
                 } break;
+                case BG_MODE7: {
+                    snes_pixel_t sprp = render_sprite_pixel(x);
+                    if ((sprp.sprite_priority == 3) && sprp.index && spren) return sprp;
+                    if ((sprp.sprite_priority == 2) && sprp.index && spren) return sprp;
+                    if ((sprp.sprite_priority == 1) && sprp.index && spren) return sprp;
+                    snes_pixel_t bg1p = render_mode7_pixel(x, y);
+                    if (bg1p.index && bg1en) return bg1p;
+                    if (sprp.index && spren) return sprp;
+
+                    return { BGPIXEL, 0, 0, 0 };
+                }
 
                 default: break;
             }
@@ -421,6 +475,8 @@ namespace snes {
                 std::ofstream dump("vram_dump.bin", std::ios::binary);
 
                 dump.write((char*)vram.data(), vram.size());
+
+                bgmode = 7;
 
                 _log(debug, "PPU registers:\n\tmode=%u\n\tbg1ofs={h:%04x, v:%04x}\n\tbg2ofs={h:%04x, v:%04x}\n\tbg3ofs={h:%04x, v:%04x}\n\tbg4ofs={h:%04x, v:%04x}\n\t"
                             "bg1addrs={tm:%04x, ts:%04x}\n\tbg2addrs={tm:%04x, ts:%04x}\n\tbg3addrs={tm:%04x, ts:%04x}\n\tbg4addrs={tm:%04x, ts:%04x}\n\t"

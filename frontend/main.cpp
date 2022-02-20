@@ -9,6 +9,8 @@
 #include <chrono>
 #include <thread>
 
+#include "apu/spc700/spc700.hpp"
+
 #undef main
 
 void log_cpu_state() {
@@ -72,6 +74,27 @@ int main(int argc, const char* argv[]) {
 
     _log::init("snes");
 
+    apu::spc::init();
+
+    // while (true) {
+    //     apu::spc::fetch();
+
+    //     // _log(debug, "opcode=%02x, pc=%04x, a=%02x, x=%02x, y=%02x, ya=%04x, sp=%02x, psw=%02x",
+    //     //     apu::spc::opcode,
+    //     //     apu::spc::registers::pc,
+    //     //     apu::spc::registers::a,
+    //     //     apu::spc::registers::x,
+    //     //     apu::spc::registers::y,
+    //     //     (u16)apu::spc::registers::ya,
+    //     //     apu::spc::registers::sp,
+    //     //     apu::spc::registers::psw
+    //     // );
+
+    //     apu::spc::execute();
+    // }
+
+    // return 0;
+
     bool loaded = false;
 
     if (argv[1]) {
@@ -97,14 +120,16 @@ int main(int argc, const char* argv[]) {
         if (start_logging) { log_cpu_state(); }
         cpu::fetch();
         cpu::execute();
+
+        apu::spc::tick(cpu::last_cycles);
         ppu::tick(cpu::last_cycles);
 
         if (stop_cpu) break;
 
         //start_logging = true;
-        //if (cpu::base_pc == 0x809154) start_logging = true;
+        //if (cpu::base_pc == 0x0081c7) start_logging = true;
         //if (cpu::base_pc == 0x008438) start_logging = true;
-        //if (cpu::total_cycles >= 8417) start_logging = true;
+        //if (cpu::total_cycles >= 7456184) start_logging = true;
 
         //if (start_logging) std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }

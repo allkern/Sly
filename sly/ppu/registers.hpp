@@ -137,7 +137,7 @@ namespace snes {
            vmain,
            vmaddl,
            vmaddh;
-        
+
         u16 vmadd;
 
         u16 bg1hofs,
@@ -147,7 +147,15 @@ namespace snes {
             bg3hofs,
             bg3vofs,
             bg4hofs,
-            bg4vofs;
+            bg4vofs,
+            m7h,
+            m7v,
+            m7a,
+            m7b,
+            m7c,
+            m7d,
+            m7x,
+            m7y;
         
         u16 coldatf;
         
@@ -364,7 +372,13 @@ namespace snes {
              bg3hofs_latch = false,
              bg3vofs_latch = false,
              bg4hofs_latch = false,
-             bg4vofs_latch = false;
+             bg4vofs_latch = false,
+             m7a_latch = false,
+             m7b_latch = false,
+             m7c_latch = false,
+             m7d_latch = false,
+             m7x_latch = false,
+             m7y_latch = false;
         
         inline bool& toggle(bool& value) {
             return value = !value;
@@ -406,8 +420,22 @@ namespace snes {
                 case PPU_BG4SC  : { bg4sc   = value; return; } break;
                 case PPU_BG12NBA: { bg12nba = value; return; } break;
                 case PPU_BG34NBA: { bg34nba = value; return; } break;
-                case PPU_BG1HOFS: { int s = bg1hofs_latch * 8; bg1hofs &= 0xff << (8 - s); bg1hofs |= value << s; toggle(bg1hofs_latch); return; } break;
-                case PPU_BG1VOFS: { int s = bg1vofs_latch * 8; bg1vofs &= 0xff << (8 - s); bg1vofs |= value << s; toggle(bg1vofs_latch); return; } break;
+                case PPU_BG1HOFS: {
+                    u16* hofs = get_bg_mode() == BG_MODE7 ? &m7h : &bg1hofs;
+                    int s = bg1hofs_latch * 8;
+                    *hofs &= 0xff << (8 - s);
+                    *hofs |= value << s;
+                    toggle(bg1hofs_latch);
+                    return;
+                } break;
+                case PPU_BG1VOFS: {
+                    u16* vofs = get_bg_mode() == BG_MODE7 ? &m7v : &bg1vofs;
+                    int s = bg1vofs_latch * 8;
+                    *vofs &= 0xff << (8 - s);
+                    *vofs |= value << s;
+                    toggle(bg1vofs_latch);
+                    return;
+                } break;
                 case PPU_BG2HOFS: { int s = bg2hofs_latch * 8; bg2hofs &= 0xff << (8 - s); bg2hofs |= value << s; toggle(bg2hofs_latch); return; } break;
                 case PPU_BG2VOFS: { int s = bg2vofs_latch * 8; bg2vofs &= 0xff << (8 - s); bg2vofs |= value << s; toggle(bg2vofs_latch); return; } break;
                 case PPU_BG3HOFS: { int s = bg3hofs_latch * 8; bg3hofs &= 0xff << (8 - s); bg3hofs |= value << s; toggle(bg3hofs_latch); return; } break;
@@ -437,6 +465,12 @@ namespace snes {
                         vmadd += get_vmain_increment();
                     return;
                 } break;
+                case PPU_M7A    : { int s = m7a_latch * 8; m7a &= 0xff << (8 - s); m7a |= value << s; toggle(m7a_latch); return; }
+                case PPU_M7B    : { int s = m7b_latch * 8; m7b &= 0xff << (8 - s); m7b |= value << s; toggle(m7b_latch); return; }
+                case PPU_M7C    : { int s = m7c_latch * 8; m7c &= 0xff << (8 - s); m7c |= value << s; toggle(m7c_latch); return; }
+                case PPU_M7D    : { int s = m7d_latch * 8; m7d &= 0xff << (8 - s); m7d |= value << s; toggle(m7d_latch); return; }
+                case PPU_M7X    : { int s = m7x_latch * 8; m7x &= 0xff << (8 - s); m7x |= value << s; toggle(m7x_latch); return; }
+                case PPU_M7Y    : { int s = m7y_latch * 8; m7y &= 0xff << (8 - s); m7y |= value << s; toggle(m7y_latch); return; }
                 case PPU_CGADD  : { cgadd   = value; return; } break;
                 case PPU_CGDATA : { cgram.at(cgadd++) = value; return; } break;
                 case PPU_W12SEL : { w12sel  = value; return; } break;

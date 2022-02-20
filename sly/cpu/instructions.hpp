@@ -436,6 +436,7 @@ namespace snes {
 
             if (test_flag(XF)) additional_cycles += 1;
         }
+    
         void cpx() {
             u16 value = bus::read(address, test_flag(XF));
             u16 result = x - value;
@@ -446,6 +447,7 @@ namespace snes {
 
             if (test_flag(XF)) additional_cycles += 1;
         }
+
         void cmp() {
             u16 value = bus::read(address, test_flag(MF));
             u16 result = a - value;

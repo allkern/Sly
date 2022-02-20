@@ -28,9 +28,11 @@ namespace snes {
             file.seekg(0);
             file.read((char*)rom.data(), rom.size());
 
-            if ((rom.at(0x7fd5) & 0x21) == ROM_LOROM) rom_type = ROM_LOROM;
-            if (rom.at(0xffd5) == ROM_HIROM) rom_type = ROM_HIROM;
-
+            if ((rom.at(0x7fd5) & 0x21) == ROM_LOROM) {
+                rom_type = ROM_LOROM;
+            } else {
+                if (rom.at(0xffd5) == ROM_HIROM) rom_type = ROM_HIROM;
+            }
             u16 header = 0x7fc0 | ((rom_type & 0x1) << 15);
 
             char* rom_name = reinterpret_cast<char*>(&rom.at(header + 0x0));

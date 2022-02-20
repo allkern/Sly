@@ -38,6 +38,8 @@ namespace snes {
                page = (addr >> 8) & 0xff;
             u16 pb = addr & 0xffff;
 
+            if (addr == 0x1a05 && (read8(0x1a05) == 0x7e)) start_logging = true;
+
             if (BANKS(0x7e, 0x7f)                  ) { wram::write(addr, value); return; }
             if (BANKS(0x00, 0x3f) && (page <= 0x1f)) { wram::write(addr, value); return; }
             if (BANKS(0x80, 0xbf) && (page <= 0x1f)) { wram::write(addr, value); return; }
