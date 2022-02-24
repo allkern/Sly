@@ -26,7 +26,6 @@ This emulator is in a **really** early stage of development. Only the basics hav
    - Basic SNES controller (1 to 4 players)
    - Auto Joypad polling not supported
  - APU/SPC
-   - Nothing!
-
-The SPC700 core hasn't been implemented yet, so the emulator will just try to spoof presence of the SPC by returning expected values.
-This doesn't always work, and some games won't boot even with these expected values (Super Mario World, for example)
+   - All instructions implemented (poorly?)
+   - Accurate enough to boot some games
+   - DSP not implemented
