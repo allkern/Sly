@@ -4,7 +4,7 @@
 
 #include "bus.hpp"
 #include "window.hpp"
-#include "disasm.hpp"
+#include "cpu/disasm.hpp"
 
 #include <chrono>
 #include <thread>
