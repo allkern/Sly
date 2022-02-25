@@ -224,10 +224,12 @@ namespace snes {
 
             // Compare Memory
             void cmpm() {
-                i8 source = bus::read(src),
+                u8 source = bus::read(src),
                    value = bus::read(dst);
+                
+                //_log(debug, "dst=%02x, src=%02x (%02x)", dst, src, source);
 
-                u16 result = source - value;
+                u16 result = value - source;
 
                 set_flags(ZF, !(result & 0xff));
                 set_flags(NF, result & 0x80);

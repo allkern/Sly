@@ -338,7 +338,11 @@ namespace snes {
 
                     return { BGPIXEL, 0, 0, 0 };
                 } break;
+
+                // Disable mode 7 for now
                 case BG_MODE7: {
+                    return { BGPIXEL, 0, 0, 0 };
+
                     snes_pixel_t sprp = render_sprite_pixel(x);
                     if ((sprp.sprite_priority == 3) && sprp.index && spren) return sprp;
                     if ((sprp.sprite_priority == 2) && sprp.index && spren) return sprp;
@@ -509,6 +513,8 @@ namespace snes {
                 dump_vram = false;
             };
 
+            if (!initialized) return;
+
             int xb = px;
             h += lc << 3;
             px += lc >> 2;
@@ -524,7 +530,12 @@ namespace snes {
                     bool pseudo_hires = get_pseudo_hires();
                     fired_nmi = true;
                     render();
-                    frame_ready_cb(pseudo_hires ? hires.get_buffer() : frame.get_buffer(), pseudo_hires);
+
+                    frame_ready_cb(
+                        pseudo_hires ? hires.get_buffer() : frame.get_buffer(),
+                        pseudo_hires
+                    );
+
                     nmi_cb();
                     v = 0;
                     py = 0;
