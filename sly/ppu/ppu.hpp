@@ -513,7 +513,7 @@ namespace snes {
                 dump_vram = false;
             };
 
-            if (!initialized) return;
+            //if (!initialized) return;
 
             int xb = px;
             h += lc << 3;

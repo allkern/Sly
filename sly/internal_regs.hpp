@@ -25,7 +25,7 @@ namespace snes {
                 case 0x4200: { }
                 case 0x420b: { return dma::read(addr); }
                 case 0x4210: { return fired_nmi << 7; }
-                case 0x4212: { /*start_logging = true;*/ return 0x82; }
+                case 0x4212: { return fired_nmi << 7; }
             }
 
             if ((addr >= 0x4300) && (addr <= 0x437f)) { return dma::read(addr); }

@@ -191,6 +191,8 @@ namespace frontend {
 
         int old_hires = 0;
 
+        bool lctrl_pressed = false;
+
         void update(uint32_t* buf, int hires) {
             if (old_hires != hires)
                 set_texture_xres(hires ? PPU_WIDTH_HIRES : PPU_WIDTH);
@@ -294,6 +296,12 @@ namespace frontend {
                 switch (event.type) {
                     case SDL_QUIT: { close(); } break;
                     case SDL_KEYDOWN: {
+                        if (event.key.keysym.sym == SDLK_LCTRL) {
+                            lctrl_pressed = true;
+                        }
+                        if ((event.key.keysym.sym == SDLK_r) && lctrl_pressed) {
+                            snes::cpu::init();
+                        }
                         if (event.key.keysym.sym == SDLK_F1) {
                             dump_vram = true;
                         }
@@ -342,6 +350,7 @@ namespace frontend {
 
                     case SDL_KEYUP: {
                         switch (event.key.keysym.sym) {
+                            case SDLK_LCTRL : { lctrl_pressed = false; } break;
                             case SDLK_a     : { snes::controllers::keyup(CTRL_A, 0); } break;
                             case SDLK_s     : { snes::controllers::keyup(CTRL_B, 0); } break;
                             case SDLK_z     : { snes::controllers::keyup(CTRL_X, 0); } break;

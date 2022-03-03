@@ -72,12 +72,11 @@ namespace snes {
         }
 
         void cop() {
-            _log(warning, "Warning: COP executed");
+            _log(warning, "Warning: COP executed @ pc=%06x tc=%u", pc, total_cycles);
             push(p, true);
 
             waiting = false;
 
-            pc += 1;
             bus::write24(sp - 2, pc);
 
             sp -= 3;
@@ -93,6 +92,7 @@ namespace snes {
             set_flags(ZF, get_zero_a());
             set_flags(NF, get_sign_a());
         }
+
         void eor() {
             u16 value = bus::read(address, test_flag(MF));
 
@@ -101,6 +101,7 @@ namespace snes {
             set_flags(ZF, get_zero_a());
             set_flags(NF, get_sign_a());
         }
+
         void tsb() {
             u16 value = bus::read(address, test_flag(MF));
 
@@ -110,6 +111,7 @@ namespace snes {
 
             if (!test_flag(MF)) additional_cycles += 2;
         }
+
         // ASL A
         void sla() {
             set_flags(CF, get_sign_a());
@@ -126,6 +128,7 @@ namespace snes {
             set_flags(ZF, get_zero_a());
             set_flags(NF, get_sign_a());
         }
+
         void asl() {
             u16 value = bus::read(address, test_flag(MF));
 
@@ -141,6 +144,7 @@ namespace snes {
 
             if (test_flag(MF)) additional_cycles += 2;
         }
+
         // LSR A
         void sra() {
             set_flags(CF, a & 0x1);
@@ -157,6 +161,7 @@ namespace snes {
             set_flags(ZF, get_zero_a());
             set_flags(NF, false);
         }
+
         void lsr() {
             u16 value = bus::read(address, test_flag(MF));
 
@@ -172,6 +177,7 @@ namespace snes {
 
             if (test_flag(MF)) additional_cycles += 2;
         }
+
         void pha() { push(a, test_flag(MF)); if (!test_flag(MF)) additional_cycles += 1; }
         void phb() { push(db, true); }
         void phd() { push(d, false); }
@@ -210,13 +216,25 @@ namespace snes {
 
             if (!test_flag(MF)) additional_cycles += 2;
         }
+
         // INC A
         void ina() {
-            a++;
+            u16 s = get_a() + 1;
+
+            if (test_flag(MF)) {
+                a &= 0xff00;
+                a |= s & 0xff;
+            } else {
+                a = s;
+            }
+    
+            set_flags(ZF, get_zero_a());
+            set_flags(NF, get_sign_a());
 
             set_flags(ZF, get_zero_a());
             set_flags(NF, get_sign_a());
         }
+
         void inc() {
             u16 value = bus::read(address, test_flag(MF));
 
@@ -227,13 +245,22 @@ namespace snes {
             set_flags(ZF, get_zero(value, test_flag(MF)));
             set_flags(NF, get_sign(value, test_flag(MF)));
         }
+
         // DEC A
         void dea() {
-            a--;
+            u16 s = get_a() - 1;
 
+            if (test_flag(MF)) {
+                a &= 0xff00;
+                a |= s & 0xff;
+            } else {
+                a = s;
+            }
+    
             set_flags(ZF, get_zero_a());
             set_flags(NF, get_sign_a());
         }
+
         void dec() {
             u16 value = bus::read(address, test_flag(MF));
 
@@ -244,12 +271,14 @@ namespace snes {
             set_flags(ZF, get_zero(value, test_flag(MF)));
             set_flags(NF, get_sign(value, test_flag(MF)));
         }
+
         void jsr() {
             //_log(debug, "jsr from %06x to %06x y=%04x", pc, address, y);
             pc -= 1;
             push(pc & 0xffff, false);
             pc = address;
         }
+
         void jsl() {
             //_log(debug, "jsr from %06x to %06x", pc, address);
             pc -= 1;
@@ -258,6 +287,7 @@ namespace snes {
             sp -= 3;
             pc = address;
         }
+
         void bit() {
             u16 value = bus::read(address, test_flag(MF));
 
@@ -270,6 +300,7 @@ namespace snes {
 
             if (test_flag(MF)) additional_cycles += 1;
         }
+
         // ROL A
         void rla() {
             bool carry = get_sign_a();
@@ -290,6 +321,7 @@ namespace snes {
             set_flags(NF, get_sign_a());
             set_flags(ZF, get_zero_a());
         }
+
         void rol() {
             u16 value = bus::read(address, test_flag(MF));
 
@@ -305,6 +337,7 @@ namespace snes {
             set_flags(NF, get_sign(value, test_flag(MF)));
             set_flags(ZF, get_zero(value, test_flag(MF)));
         }
+
         // ROR A
         void rra() {
             bool carry = a & 0x1;
@@ -325,6 +358,7 @@ namespace snes {
             set_flags(NF, get_sign_a());
             set_flags(ZF, get_zero_a());
         }
+
         void ror() {
             u16 value = bus::read(address, test_flag(MF));
 
@@ -340,6 +374,7 @@ namespace snes {
             set_flags(NF, get_sign(value, test_flag(MF)));
             set_flags(ZF, get_zero(value, test_flag(MF)));
         }
+
         void sec() { set_flags(CF, true); }
         void sei() { set_flags(IF, true); }
         void sed() { set_flags(DF, true); }
@@ -361,6 +396,7 @@ namespace snes {
                 additional_cycles += 7;
             }
         }
+
         void mvn() {
             while (a != 0xffff) {
                 u8 srcb = bus::read8(src | x++);
@@ -396,20 +432,36 @@ namespace snes {
         void pei() { push(address, false); } // To-do
         void pea() { push(address, false); } // To-do
 
-        void stp() { _log(debug, "Unimplemented instruction STP"); } // To-do
+        void stp() { stopped = true; } // To-do
 
         void dex() {
-            x--;
+            u16 s = get_x() - 1;
 
+            if (test_flag(XF)) {
+                x &= 0xff00;
+                x |= s & 0xff;
+            } else {
+                x = s;
+            }
+    
             set_flags(ZF, get_zero_x());
             set_flags(NF, get_sign_x());
         }
-        void dey() {
-            y--;
 
+        void dey() {
+            u16 s = get_y() - 1;
+
+            if (test_flag(XF)) {
+                y &= 0xff00;
+                y |= s & 0xff;
+            } else {
+                y = s;
+            }
+    
             set_flags(ZF, get_zero_y());
             set_flags(NF, get_sign_y());
         }
+
         void xba() {
             u8 t = a & 0xff;
             a >>= 8;
@@ -460,7 +512,14 @@ namespace snes {
         }
 
         void rep() { set_flags(bus::read(address, true), false); }
-        void sep() { set_flags(bus::read(address, true), true); }
+        void sep() {
+            set_flags(bus::read(address, true), true);
+
+            if (test_flag(XF)) {
+                x &= 0xff;
+                y &= 0xff;
+            }
+        }
 
         void inx() {
             x++;
@@ -468,6 +527,7 @@ namespace snes {
             set_flags(ZF, get_zero_x());
             set_flags(NF, get_sign_x());
         }
+
         void iny() {
             y++;
 
@@ -476,38 +536,6 @@ namespace snes {
         }
 
         void wai() { waiting = true; } // To-do
-
-        bool test_signed_overflow_add8(u8 prev, u8 value, u8 current) {
-            bool ps = prev & 0x80,
-                 vs = value & 0x80,
-                 cs = current & 0x80;
-
-            return (ps && vs && !cs) || (!ps && !vs && cs);
-        }
-
-        bool test_signed_overflow_add16(u16 prev, u16 value, u16 current) {
-            bool ps = prev & 0x8000,
-                 vs = value & 0x8000,
-                 cs = current & 0x8000;
-
-            return (ps && vs && !cs) || (!ps && !vs && cs);
-        }
-
-        bool test_signed_overflow_sub8(u8 prev, u8 value, u8 current) {
-            bool ps = prev & 0x80,
-                 vs = value & 0x80,
-                 cs = current & 0x80;
-
-            return (ps && !vs && !cs) || (!ps && vs && cs);
-        }
-
-        bool test_signed_overflow_sub16(u16 prev, u16 value, u16 current) {
-            bool ps = prev & 0x8000,
-                 vs = value & 0x8000,
-                 cs = current & 0x8000;
-
-            return (ps && !vs && !cs) || (!ps && vs && cs);
-        }
 
         void adc8() {
             u8 value = bus::read(address, test_flag(MF));
@@ -660,8 +688,8 @@ namespace snes {
         }
 
         void lda() { set_a(bus::read(address, false)); set_flags(NF, get_sign_a()); set_flags(ZF, get_zero_a()); }
-        void ldx() { x = bus::read(address, test_flag(XF)); set_flags(NF, get_sign_x()); set_flags(ZF, get_zero_x()); }
-        void ldy() { y = bus::read(address, test_flag(XF)); set_flags(NF, get_sign_y()); set_flags(ZF, get_zero_y()); }
+        void ldx() { set_x(bus::read(address, false)); set_flags(NF, get_sign_x()); set_flags(ZF, get_zero_x()); }
+        void ldy() { set_y(bus::read(address, false)); set_flags(NF, get_sign_y()); set_flags(ZF, get_zero_y()); }
         void sta() { bus::write(address, a, test_flag(MF)); }
         void stx() { bus::write(address, x, test_flag(XF)); }
         void sty() { bus::write(address, y, test_flag(XF)); }
@@ -676,6 +704,7 @@ namespace snes {
             set_flags(ZF, get_zero_x());
             set_flags(NF, get_sign_x());
         }
+
         void tay() {
             if (test_flag(XF)) {
                 y &= 0xff00;
@@ -688,8 +717,8 @@ namespace snes {
         }
         void tcd() { d = a; set_flags(ZF, !d); set_flags(NF, d & 0x8000); }
         void tcs() { sp = a; }
-        void tdc() { a = d; set_flags(ZF, get_zero_a()); set_flags(NF, get_sign_a()); }
-        void tsc() { a = sp; set_flags(ZF, get_zero_a()); set_flags(NF, get_sign_a()); }
+        void tdc() { a = d; set_flags(ZF, !a); set_flags(NF, a & 0x8000); }
+        void tsc() { a = sp; set_flags(ZF, !a); set_flags(NF, a & 0x8000); }
         void tsx() { x = sp; set_flags(ZF, get_zero_x()); set_flags(NF, get_sign_x()); }
         void txa() {
             if (test_flag(MF)) {

@@ -20,6 +20,9 @@ namespace snes {
             nbrkv = bus::read16(0xffe6);
             ncopv = bus::read16(0xffe4);
 
+            stopped = false;
+            waiting = false;
+
             nmiv = nnmiv;
             brkv = nbrkv;
             copv = ncopv;
@@ -39,7 +42,7 @@ namespace snes {
         opcode_t instruction;
 
         void fetch() {
-            if (waiting) return;
+            if (waiting || stopped) return;
 
             base_pc = registers::pc;
             opcode = bus::read8(registers::pc++);
@@ -50,7 +53,7 @@ namespace snes {
         }
 
         void execute() {
-            if (waiting) { last_cycles = 2; return; }
+            if (waiting || stopped) { last_cycles = 2; return; }
 
             instruction.addressing_mode();
             instruction.operation();
