@@ -111,8 +111,8 @@ int main(int argc, const char* argv[]) {
 
     cpu::init();
     dma::init(bus::read8, bus::write8);
-
-    //frontend::window::init(3);
+    wram::init();
+    frontend::window::init(3);
     //start_logging = true;
 
     ppu::init(frontend::window::update, cpu::nmi, bus::read8, bus::write8);
@@ -128,11 +128,11 @@ int main(int argc, const char* argv[]) {
         if (stop_cpu) break;
 
         //start_logging = true;
-        //if (cpu::base_pc == 0x008494) start_logging = true;
+        //if (cpu::base_pc == 0x8080a5) start_logging = true;
         //if (cpu::base_pc == 0x009e66) start_logging = true;
         //if (cpu::base_pc == 0x81bcb8) start_logging = true;
         //if (cpu::base_pc == 0x80807e) start_logging = true;
-        //if (cpu::total_cycles >= 678344) start_logging = true;
+        //if (cpu::total_cycles >= 677652) start_logging = true;
 
         //if (start_logging) std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }

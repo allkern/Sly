@@ -8,6 +8,12 @@ namespace snes {
     namespace wram {
         std::array <u8, 0x20000> buf;
 
+        void init() {
+            srand(time(NULL));
+
+            for (u8& b : buf) b = rand() & 0xff;
+        }
+
         u8 read(u32 addr, int size = 1) {
             u8 bank = (addr >> 16) & 0xff,
                page = (addr >> 8) & 0xff;

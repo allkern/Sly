@@ -230,9 +230,6 @@ namespace snes {
     
             set_flags(ZF, get_zero_a());
             set_flags(NF, get_sign_a());
-
-            set_flags(ZF, get_zero_a());
-            set_flags(NF, get_sign_a());
         }
 
         void inc() {
@@ -480,7 +477,7 @@ namespace snes {
 
         void cpy() {
             u16 value = bus::read(address, test_flag(XF));
-            u16 result = y - value;
+            u16 result = get_y() - value;
 
             set_flags(ZF, get_y() == (value & (test_flag(XF) ? 0xff : 0xffff)));
             set_flags(NF, get_sign(result, test_flag(XF)));
@@ -491,7 +488,7 @@ namespace snes {
     
         void cpx() {
             u16 value = bus::read(address, test_flag(XF));
-            u16 result = x - value;
+            u16 result = get_x() - value;
 
             set_flags(ZF, get_x() == (value & (test_flag(XF) ? 0xff : 0xffff)));
             set_flags(NF, get_sign(result, test_flag(XF)));
@@ -502,7 +499,10 @@ namespace snes {
 
         void cmp() {
             u16 value = bus::read(address, test_flag(MF));
-            u16 result = a - value;
+            u16 result = get_a() - value;
+
+            //if (start_logging)
+            //    _log(debug, "address=%06x, value=%04x, a=%04x", address, value, get_a());
 
             set_flags(ZF, get_a() == (value & (test_flag(MF) ? 0xff : 0xffff)));
             set_flags(NF, get_sign(result, test_flag(MF)));
@@ -522,15 +522,29 @@ namespace snes {
         }
 
         void inx() {
-            x++;
+            u16 s = get_x() + 1;
 
+            if (test_flag(XF)) {
+                x &= 0xff00;
+                x |= s & 0xff;
+            } else {
+                x = s;
+            }
+    
             set_flags(ZF, get_zero_x());
             set_flags(NF, get_sign_x());
         }
 
         void iny() {
-            y++;
+            u16 s = get_y() + 1;
 
+            if (test_flag(XF)) {
+                y &= 0xff00;
+                y |= s & 0xff;
+            } else {
+                y = s;
+            }
+    
             set_flags(ZF, get_zero_y());
             set_flags(NF, get_sign_y());
         }
