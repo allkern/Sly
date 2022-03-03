@@ -25,6 +25,7 @@ namespace snes {
             void write(u16 addr, u8 value) {
                 if ((addr >= PG0_BEGIN) && (addr <= PG0_END)) { aram::write(addr, value); return; }
                 if ((addr >= 0xf0     ) && (addr <= 0xff   )) { ports::write((u8)(addr & 0xff), value); return; }
+               // _log(debug, "aram write addr=%04x, value=%02x", addr, value);
                 if ((addr >= PG1_BEGIN) && (addr <= PG1_END)) { aram::write(addr, value); return; }
                 if ((addr >= RAM_BEGIN) && (addr <= RAM_END)) { aram::write(addr, value); return; }
             }

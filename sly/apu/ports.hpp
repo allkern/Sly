@@ -25,6 +25,8 @@ namespace snes {
                     case 0x2143: return port3o;
                 }
 
+                _log(debug, "spu unhandled cpu port read %04x", addr);
+
                 return 0x0;
             }
             
@@ -48,6 +50,8 @@ namespace snes {
                     case 0xf7: return port3i;
                 }
 
+                //_log(debug, "spu unhandled port read %04x", addr);
+
                 return 0x0;
             }
             
@@ -59,6 +63,8 @@ namespace snes {
                     case 0xf6: { port2o = value; return; }
                     case 0xf7: { port3o = value; return; }
                 }
+
+                _log(debug, "spu unhandled port write %04x, value %02x", addr, value);
             }
         }
     }

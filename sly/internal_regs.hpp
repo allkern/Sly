@@ -31,7 +31,7 @@ namespace snes {
             if ((addr >= 0x4300) && (addr <= 0x437f)) { return dma::read(addr); }
             if ((addr >= 0x4218) && (addr <= 0x421f)) { return controllers::read(addr); }
 
-            _log(debug, "unhandled CPU regs read %04x", addr);
+            //_log(debug, "unhandled CPU regs read %04x", addr);
             return 0x00;
         }
     }

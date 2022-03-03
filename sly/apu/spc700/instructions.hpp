@@ -35,8 +35,8 @@ namespace snes {
             void tya() { a = y; set_flags(ZF, !a); set_flags(NF, a & 0x80); }
             void tax() { x = a; set_flags(ZF, !x); set_flags(NF, x & 0x80); }
             void tay() { y = a; set_flags(ZF, !y); set_flags(NF, y & 0x80); }
-            void txs() { x = sp; set_flags(ZF, !x); set_flags(NF, x & 0x80); }
-            void tsx() { sp = x; }
+            void txs() { sp = x; }
+            void tsx() { x = sp; set_flags(ZF, !x); set_flags(NF, x & 0x80); }
             void mov() { bus::write(dst, bus::read(src)); }
             void ldw() { ya = bus::read16(address); set_flags(ZF, !(u16)ya); set_flags(NF, (u16)ya & 0x8000); }
             void stw() { bus::write16(address, (u16)ya); }
@@ -275,7 +275,7 @@ namespace snes {
             }
             
             void pcall() { call(0xff00 | bus::read(address)); }
-            void jmp() { pc = address; }
+            void jmp() { pc = bus::read16(address); }
 
             void set1(int b) { bus::write(address, bus::read(address) | (1 << b)); }
 

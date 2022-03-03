@@ -64,14 +64,14 @@ namespace snes {
                     (u16)registers::ya,
                     registers::psw,
                     registers::sp,
-                    bus::read(registers::sp + 1),
-                    bus::read(registers::sp + 2),
-                    bus::read(registers::sp + 3),
-                    bus::read(registers::sp + 4),
-                    bus::read(registers::sp + 5),
-                    bus::read(registers::sp + 6),
-                    bus::read(registers::sp + 7),
-                    bus::read(registers::sp + 8),
+                    ((registers::sp + 1) <= 0xef) ? bus::read(registers::sp + 1) : 0x0,
+                    ((registers::sp + 2) <= 0xef) ? bus::read(registers::sp + 2) : 0x0,
+                    ((registers::sp + 3) <= 0xef) ? bus::read(registers::sp + 3) : 0x0,
+                    ((registers::sp + 4) <= 0xef) ? bus::read(registers::sp + 4) : 0x0,
+                    ((registers::sp + 5) <= 0xef) ? bus::read(registers::sp + 5) : 0x0,
+                    ((registers::sp + 6) <= 0xef) ? bus::read(registers::sp + 6) : 0x0,
+                    ((registers::sp + 7) <= 0xef) ? bus::read(registers::sp + 7) : 0x0,
+                    ((registers::sp + 8) <= 0xef) ? bus::read(registers::sp + 8) : 0x0,
                     last_cycles
                 );
             }
@@ -124,8 +124,11 @@ namespace snes {
                 }
             }
 
+            bool start_logging = false;
+
             void execute() {
-                log_cpu_state();
+                //if (registers::pc >= 0xfffb) start_logging = true;
+                //if (start_logging) log_cpu_state();
 
                 switch (opcode) {
                     case 0x99: { ixy(); adcm(); last_cycles = 5; } break;
