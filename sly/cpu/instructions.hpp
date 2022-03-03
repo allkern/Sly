@@ -8,6 +8,23 @@ namespace snes {
 
         bool branch_taken = false;
 
+        void push_byte(u8 byte) {
+            bus::write8(sp--, byte);
+        }
+
+        u8 pop_byte() {
+            return bus::read8(++sp);
+        }
+
+        void push_word(u16 word) {
+            push_byte(word >> 8);
+	        push_byte(word & 0xff);
+        }
+
+        u16 pop_word() {
+            return pop_byte() | (pop_byte() << 8);
+        }
+
         void push(u16 value, bool mode) {
             bus::write(sp - (1 - mode), value, mode);
 
@@ -19,11 +36,12 @@ namespace snes {
 
             waiting = false;
 
-            push(p, true);
+            set_flags(IF, true);
+            set_flags(DF, false);
 
-            bus::write24(sp - 2, pc);
-
-            sp -= 3;
+            push_byte((pc >> 16) & 0xff);
+            push_word(pc);
+            push_byte(p);
 
             pc = nmiv;
         }
@@ -37,49 +55,30 @@ namespace snes {
         }
 
         void rti() {
-            sp += 3;
-
-            u32 addr = bus::read24(sp - 2);
-
-            pc = addr;
-
-            p = pull(true);
-        }
-
-        bool get_result_carry(u32 result) {
-            return result > (test_flag(MF) ? 0xff : 0xffff); 
-        }
-
-        bool get_result_signed_overflow(bool op, u16 prev_a) {
-            bool prevn = prev_a & (1 << (test_flag(MF) ? 7 : 15)),
-                 newn  = a & (1 << (test_flag(MF) ? 7 : 15));
-
-            return op ? (newn && !prevn) : (!newn && prevn);
+            p = pop_byte();
+            pc = pop_word() | (pop_byte() << 16);
         }
 
         void brk() {
             _log(warning, "Warning: BRK executed @ pc=%06x tc=%u", pc, total_cycles);
-            push(p, true);
 
             waiting = false;
 
-            pc += 1;
-            bus::write24(sp - 2, pc);
-
-            sp -= 3;
+            push_byte((pc >> 16) & 0xff);
+            push_word(pc);
+            push_byte(p);
 
             pc = brkv;
         }
 
         void cop() {
             _log(warning, "Warning: COP executed @ pc=%06x tc=%u", pc, total_cycles);
-            push(p, true);
 
             waiting = false;
 
-            bus::write24(sp - 2, pc);
-
-            sp -= 3;
+            push_byte((pc >> 16) & 0xff);
+            push_word(pc);
+            push_byte(p);
 
             pc = copv;
         }

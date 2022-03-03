@@ -125,7 +125,7 @@ namespace snes {
             }
 
             void execute() {
-                //log_cpu_state();
+                log_cpu_state();
 
                 switch (opcode) {
                     case 0x99: { ixy(); adcm(); last_cycles = 5; } break;

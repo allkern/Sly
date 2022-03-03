@@ -507,6 +507,8 @@ namespace snes {
         }
 
         u8 read(u16 addr) {
+            if (addr == 0x213e) { /*_log(debug, "ppu stat77 read");*/ return 0x01; }
+            if (addr == 0x213f) { /*_log(debug, "ppu stat78 read");*/ return 0x01; }
             if (addr == 0x2140) return apu::read(addr);
             if (addr == 0x2141) return apu::read(addr);
             if (addr == 0x2142) return apu::read(addr);
@@ -566,7 +568,7 @@ namespace snes {
                 }
             }
 
-            return 0xff;
+            return 0x00;
 
             //_log(debug, "unhandled PPU read %04x", addr);
         }

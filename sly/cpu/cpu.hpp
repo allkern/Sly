@@ -53,7 +53,7 @@ namespace snes {
         }
 
         void execute() {
-            if (waiting || stopped) { last_cycles = 2; return; }
+            if (waiting || stopped) { last_cycles = 2; total_cycles += last_cycles; return; }
 
             instruction.addressing_mode();
             instruction.operation();
