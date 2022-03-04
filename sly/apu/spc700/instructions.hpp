@@ -144,8 +144,10 @@ namespace snes {
                 u8 value = bus::read(address);
 
                 u16 result = a + value + test_flag(CF);
+                u8 hcr = (a & 0xf) + (value & 0xf) + test_flag(CF);
+                _log(debug, "spc700 adc %02x + %02x + %u = %04x", a, value, test_flag(CF), result);
 
-                set_flags(HF, (a < 0x10) && (result >= 0x10));
+                set_flags(HF, hcr > 0xf);
                 set_flags(VF, ~(a ^ value) & (a ^ result) & 0x80);
 
                 a = result & 0xff;
@@ -500,8 +502,22 @@ namespace snes {
                 set_flags(NF, (u16)ya & 0x8000);
             }
 
-            void incw() { bus::write16(address, bus::read16(address) + 1); }
-            void decw() { bus::write16(address, bus::read16(address) - 1); }
+            void incw() {
+                u16 value = bus::read16(address) + 1;
+
+                set_flags(ZF, !value);
+                set_flags(NF, value & 0x8000);
+
+                bus::write16(address, value);
+            }
+            void decw() {
+                u16 value = bus::read16(address) - 1;
+
+                set_flags(ZF, !value);
+                set_flags(NF, value & 0x8000);
+
+                bus::write16(address, value);
+            }
 
             void div() {
                 set_flags(HF, (y & 0xf) >= (x & 0xf));

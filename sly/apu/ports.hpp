@@ -64,7 +64,7 @@ namespace snes {
                     case 0xf7: { port3o = value; return; }
                 }
 
-                _log(debug, "spu unhandled port write %04x, value %02x", addr, value);
+                //_log(debug, "spu unhandled port write %04x, value %02x", addr, value);
             }
         }
     }

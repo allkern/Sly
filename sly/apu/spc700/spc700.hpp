@@ -112,6 +112,7 @@ namespace snes {
                     while (pending_cycles > 0) {
                         fetch();
                         execute();
+                        timers::tick(last_cycles);
 
                         pending_cycles -= last_cycles;
                     }
@@ -119,6 +120,7 @@ namespace snes {
                 if (pending_cycles == last_cycles) {
                     fetch();
                     execute();
+                    timers::tick(last_cycles);
 
                     pending_cycles = 0;
                 }

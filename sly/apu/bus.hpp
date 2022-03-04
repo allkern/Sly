@@ -5,6 +5,8 @@
 #include "ipl.hpp"
 #include "aram.hpp"
 #include "ports.hpp"
+#include "registers.hpp"
+#include "timers.hpp"
 
 namespace snes {
     namespace apu {
@@ -12,7 +14,20 @@ namespace snes {
             u8 read(u16 addr) {
                 // _log(debug, "SPU bus read addr=%04x", addr);
                 if ((addr >= PG0_BEGIN) && (addr <= PG0_END)) return aram::read(addr);
-                if ((addr >= 0xf0     ) && (addr <= 0xff   )) return ports::read((u8)(addr & 0xff));
+                
+                switch (addr) {
+                    case 0xf1: return control;
+                    case 0xfa: case 0xfb: case 0xfc: return timers::tdiv[addr - 0xfa];
+                    case 0xfd: case 0xfe: case 0xff: {
+                        u8 out = timers::tout[addr - 0xfd];
+
+                        timers::tout[addr - 0xfd] = 0;
+                        
+                        return out;
+                    }
+                }
+
+                if ((addr >= 0xf4     ) && (addr <= 0xf7   )) return ports::read((u8)(addr & 0xff));
                 if ((addr >= PG1_BEGIN) && (addr <= PG1_END)) return aram::read(addr);
                 if ((addr >= RAM_BEGIN) && (addr <= RAM_END)) return aram::read(addr);
                 if ((addr >= IPL_BEGIN) && (addr <= IPL_END)) return ipl::read(addr);
@@ -24,8 +39,23 @@ namespace snes {
 
             void write(u16 addr, u8 value) {
                 if ((addr >= PG0_BEGIN) && (addr <= PG0_END)) { aram::write(addr, value); return; }
-                if ((addr >= 0xf0     ) && (addr <= 0xff   )) { ports::write((u8)(addr & 0xff), value); return; }
-               // _log(debug, "aram write addr=%04x, value=%02x", addr, value);
+                
+                switch (addr) {
+                    case 0xf1: {
+                        control = value;
+
+                        for (int t = 0; t < 3; t++) {
+                            timers::tout[t] = 0;
+                            timers::t[t] = 0;
+                        }
+
+                        return;
+                    }
+                    case 0xfa: case 0xfb: case 0xfc: { timers::tdiv[addr - 0xfa] = value; return; }
+                    //case 0xfd: case 0xfe: case 0xff: { timers::tout[addr - 0xfd] = 0; return; }
+                }
+
+                if ((addr >= 0xf4     ) && (addr <= 0xf7   )) { ports::write((u8)(addr & 0xff), value); return; }
                 if ((addr >= PG1_BEGIN) && (addr <= PG1_END)) { aram::write(addr, value); return; }
                 if ((addr >= RAM_BEGIN) && (addr <= RAM_END)) { aram::write(addr, value); return; }
             }

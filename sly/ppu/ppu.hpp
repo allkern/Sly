@@ -134,6 +134,8 @@ namespace snes {
         u16 get_pixel_snes_color(snes_pixel_t pixel) {
             u16 offset = (pixel.palette << (1 + pixel.bpp)) + (pixel.index << 1);
 
+            if ((offset + 1) > cgram.size()) return 0x0000;
+
             return (cgram[offset + 1] << 8) | cgram[offset];
         }
 

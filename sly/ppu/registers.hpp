@@ -472,7 +472,7 @@ namespace snes {
                 case PPU_M7X    : { int s = m7x_latch * 8; m7x &= 0xff << (8 - s); m7x |= value << s; toggle(m7x_latch); return; }
                 case PPU_M7Y    : { int s = m7y_latch * 8; m7y &= 0xff << (8 - s); m7y |= value << s; toggle(m7y_latch); return; }
                 case PPU_CGADD  : { cgadd   = value; return; } break;
-                case PPU_CGDATA : { cgram.at(cgadd++) = value; return; } break;
+                case PPU_CGDATA : { if (cgadd < cgram.size()) cgram.at(cgadd++) = value; return; } break;
                 case PPU_W12SEL : { w12sel  = value; return; } break;
                 case PPU_W34SEL : { w34sel  = value; return; } break;
                 case PPU_WOBJSEL: { wobjsel = value; return; } break;
