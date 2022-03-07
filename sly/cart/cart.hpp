@@ -79,7 +79,7 @@ namespace snes {
                     if (BANKS(0x00, 0x7f)) bank += 0x80;
             
                     // Main
-                    if (BANKS(0xc0, 0xff)) { addr = (bank - 0xc0) << 15 | pb; sram_read = false; }
+                    if (BANKS(0xc0, 0xff)) { addr = (bank - 0xc0) << 16 | pb; sram_read = false; }
 
                     // Mirror
                     if (BANKS(0x80, 0xbf) && (page >= 0x80)) {

@@ -589,13 +589,13 @@ namespace snes {
             if (test_flag(DF)) {
                 result = (a & 0x0f) + (value & 0x0f) + test_flag(CF);
 
-                if(result > 0x09) result += 0x06;
+                if (result > 0x09) result += 0x06;
                 result = (a & 0xf0) + (value & 0xf0) + (result > 0x0f ? 0x10 : 0) + (result & 0x0f);
 
-                if(result > 0x9f) result += 0x60;
+                if (result > 0x9f) result += 0x60;
                 result = (a & 0xf00) + (value & 0xf00) + (result > 0xff ? 0x100 : 0) + (result & 0xff);
 
-                if(result > 0x9ff) result += 0x600;
+                if (result > 0x9ff) result += 0x600;
                 result = (a & 0xf000) + (value & 0xf000) + (result > 0xfff ? 0x1000 : 0) + (result & 0xfff);
             } else {
                 result = (u32)get_a() + value + test_flag(CF);
@@ -637,7 +637,7 @@ namespace snes {
 
             set_flags(VF, ~(a ^ value) & (a ^ result) & 0x80);
 
-            if(test_flag(DF) && (result <= 0xff))
+            if (test_flag(DF) && (result <= 0xff))
                 result -= 0x60;
 
             set_a(result);
@@ -660,13 +660,13 @@ namespace snes {
             if (test_flag(DF)) {
                 result = (a & 0x0f) + (value & 0x0f) + test_flag(CF);
 
-                if(result <= 0x0f) result -= 0x06;
+                if (result <= 0x0f) result -= 0x06;
                 result = (a & 0xf0) + (value & 0xf0) + (result > 0x0f ? 0x10 : 0) + (result & 0x0f);
 
-                if(result <= 0xff) result -= 0x60;
+                if (result <= 0xff) result -= 0x60;
                 result = (a & 0xf00) + (value & 0xf00) + (result > 0xff ? 0x100 : 0) + (result & 0xff);
 
-                if(result <= 0xfff) result -= 0x600;
+                if (result <= 0xfff) result -= 0x600;
                 result = (a & 0xf000) + (value & 0xf000) + (result > 0xfff ? 0x1000 : 0) + (result & 0xfff);
             } else {
                 result = a + value + test_flag(CF);
@@ -674,7 +674,7 @@ namespace snes {
 
             set_flags(VF, ~(a ^ value) & (a ^ result) & 0x8000);
 
-            if(test_flag(DF) && (result <= 0xffff))
+            if (test_flag(DF) && (result <= 0xffff))
                 result -= 0x6000;
 
             set_a(result);

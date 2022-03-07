@@ -103,7 +103,7 @@ int main(int argc, const char* argv[]) {
         loaded = cart::load("roms/parodius.sfc");
     }
 
-    //_log(debug, "[0a84c6]=%02x", bus::read8(0x0a84c6));
+    //_log(debug, "[c20016]=%02x", bus::read8(0xc20016));
 
     //return 0;
 
@@ -114,6 +114,7 @@ int main(int argc, const char* argv[]) {
     wram::init();
     frontend::window::init(3);
     //start_logging = true;
+    //cpu::fetch();
 
     ppu::init(frontend::window::update, cpu::nmi, bus::read8, bus::write8);
 
@@ -132,7 +133,7 @@ int main(int argc, const char* argv[]) {
         //if (cpu::base_pc == 0x009e66) start_logging = true;
         //if (cpu::base_pc == 0x81bcb8) start_logging = true;
         //if (cpu::base_pc == 0x0082d6) start_logging = true;
-        //if (cpu::total_cycles >= 30000000) start_logging = true;
+        if (cpu::total_cycles >= 10000000) start_logging = true;
 
         //if (start_logging) std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
