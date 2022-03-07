@@ -33,9 +33,9 @@ namespace snes {
         void acc() {}
 
         // 1/2 Byte Immediates
-        void imm() { immediate_mode = true; address = pc++; /*/*data = bus::read(address, true);*/ }
-        void ima() { immediate_mode = true; address = pc++; if (!test_flag(MF)) pc++; /*/*data = bus::read(address, test_flag(MF));*/ }
-        void imx() { immediate_mode = true; address = pc++; if (!test_flag(XF)) pc++; /*/*data = bus::read(address, test_flag(XF));*/ }
+        void imm() { immediate_mode = true; address = pc++; }
+        void ima() { immediate_mode = true; address = pc++; if (!test_flag(MF)) pc++; }
+        void imx() { immediate_mode = true; address = pc++; if (!test_flag(XF)) pc++; }
         
         // Relative
         void rel() { address = pc + (i32)(i8)bus::read(pc++, true); }
@@ -44,13 +44,8 @@ namespace snes {
         // Absolute
         void abj() { address = (pc & 0xff0000) | bus::read(pc, false); pc += 2; }
         void abd() { address = (db << 16) | bus::read(pc, false); pc += 2; }
-        void abx() {
-            address = (db << 16) | (bus::read(pc, false) + x); pc += 2;
-            //_log(debug, "address=%06x", address);
-        }
-        void aby() {
-            address = (db << 16) | (bus::read(pc, false) + y); pc += 2;
-        }
+        void abx() { address = (db << 16) | (bus::read(pc, false) + x); pc += 2; }
+        void aby() { address = (db << 16) | (bus::read(pc, false) + y); pc += 2; }
         
         // Absolute Indirect
         void abi() { address = (pc & 0xff0000) | bus::read(pc, false); address = (pc & 0xff0000) | bus::read(address, false); pc += 2; }
@@ -59,12 +54,12 @@ namespace snes {
         
         // Direct Page
         void dpg() { address = (d + bus::read8(pc++)) & 0xffff; if (d & 0xff) additional_cycles += 1; }
-        void dpx() { address = (d + bus::read8(pc++) + x) & 0xffff; /*data = bus::read(address, false, true);*/ if (d & 0xff) additional_cycles += 1; }
-        void dpy() { address = (d + bus::read8(pc++) + y) & 0xffff; /*data = bus::read(address, false, true);*/ if (d & 0xff) additional_cycles += 1; }
+        void dpx() { address = (d + bus::read8(pc++) + x) & 0xffff; if (d & 0xff) additional_cycles += 1; }
+        void dpy() { address = (d + bus::read8(pc++) + y) & 0xffff; if (d & 0xff) additional_cycles += 1; }
 
         // Direct Page Indirect
-        void dpi() { address = (d + bus::read8(pc++)) & 0xffff; address = (db << 16) | bus::read(address, false); /*data = bus::read(address, false, true);*/ if (d & 0xff) additional_cycles += 1; }
-        void dix() { address = (d + bus::read8(pc++) + x) & 0xffff; address = (db << 16) | bus::read(address, false); /*data = bus::read(address, false, true);*/ if (d & 0xff) additional_cycles += 1; }
+        void dpi() { address = (d + bus::read8(pc++)) & 0xffff; address = (db << 16) | bus::read(address, false); if (d & 0xff) additional_cycles += 1; }
+        void dix() { address = (d + bus::read8(pc++) + x) & 0xffff; address = (db << 16) | bus::read(address, false); if (d & 0xff) additional_cycles += 1; }
         void diy() {
             address = (d + bus::read8(pc++)) & 0xffff;
             address = (db << 16) | bus::read(address, false) + y;
@@ -80,12 +75,12 @@ namespace snes {
         }
 
         // Long
-        void lng() { address = bus::read24(pc); pc += 3; /*data = bus::read(address, false);*/ }
+        void lng() { address = bus::read24(pc); pc += 3; }
         void lnx() { address = bus::read24(pc) + x; pc += 3; }
         
         // Stack Relative
-        void str() { address = sp + (i16)bus::read8(pc++); /*data = bus::read(address, false, true);*/ }
-        void sri() { address = sp + (i16)bus::read8(pc++); address = (db << 16) | bus::read(address, false); /*data = bus::read(address, false);*/ }
+        void str() { address = sp + (i16)bus::read8(pc++); }
+        void sri() { address = sp + (i16)bus::read8(pc++); address = (db << 16) | bus::read(address, false); }
 
         // Block Move
         void bmm() { data = bus::read(pc, false); pc += 2; src = ((data & 0xff00) << 8); dst = ((data & 0xff) << 16); }

@@ -11,7 +11,7 @@ namespace snes {
         void init() {
             srand(time(NULL));
 
-            for (u8& b : buf) b = rand() & 0xff;
+            //for (u8& b : buf) b = rand() & 0xff;
         }
 
         u8 read(u32 addr, int size = 1) {
