@@ -145,7 +145,7 @@ namespace snes {
 
                 u16 result = a + value + test_flag(CF);
                 u8 hcr = (a & 0xf) + (value & 0xf) + test_flag(CF);
-                _log(debug, "spc700 adc %02x + %02x + %u = %04x", a, value, test_flag(CF), result);
+                //_log(debug, "spc700 adc %02x + %02x + %u = %04x", a, value, test_flag(CF), result);
 
                 set_flags(HF, hcr > 0xf);
                 set_flags(VF, ~(a ^ value) & (a ^ result) & 0x80);
@@ -168,15 +168,17 @@ namespace snes {
             void nop() {}
 
             void adcm() {
-                u8 source = bus::read(src),
-                   value = bus::read(dst);
+                u8 dest = bus::read(dst),
+                   value = bus::read(src);
 
-                u16 result = source + value + test_flag(CF);
-                
-                set_flags(HF, (source < 0x10) && (result >= 0x10));
-                set_flags(VF, ~(source ^ value) & (source ^ result) & 0x80);
+                u16 result = dest + value + test_flag(CF);
 
-                bus::write(src, result & 0xff);
+                //_log(debug, "spc700 adc %02x + %02x + %u = %04x", dest, value, test_flag(CF), result);
+
+                set_flags(HF, ((dest & 0xf) + (value & 0xf) + test_flag(CF)) > 0xf);
+                set_flags(VF, ~(dest ^ value) & (dest ^ result) & 0x80);
+
+                bus::write(dst, result & 0xff);
 
                 set_flags(NF, (result & 0xff) & 0x80);
                 set_flags(ZF, !(result & 0xff));

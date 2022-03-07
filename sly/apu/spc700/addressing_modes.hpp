@@ -28,7 +28,7 @@ namespace snes {
             void idy() { address = bus::read16(get_direct_page() | bus::read(pc++)) + y; }
             void dp2() { u16 d = get_direct_page(); src = d | bus::read(pc++); dst = d | bus::read(pc++); }
             void dpi() { src = pc++; dst = get_direct_page() | bus::read(pc++); }
-            void ixy() { dst = x; src = y; }
+            void ixy() { dst = get_direct_page() + x; src = get_direct_page() + y; }
             void brl() { src = get_direct_page() | bus::read(pc++); address = pc + (i16)(i8)bus::read(pc); pc++; }
             void rel() { address = (i16)(i8)bus::read(pc++); }
         }

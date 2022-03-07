@@ -133,7 +133,7 @@ int main(int argc, const char* argv[]) {
         //if (cpu::base_pc == 0x009e66) start_logging = true;
         //if (cpu::base_pc == 0x81bcb8) start_logging = true;
         //if (cpu::base_pc == 0x0082d6) start_logging = true;
-        if (cpu::total_cycles >= 20000000) start_logging = true;
+        //if (cpu::total_cycles >= 20000000) start_logging = true;
 
         //if (start_logging) std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
