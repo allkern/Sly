@@ -24,6 +24,7 @@ namespace snes {
             }
 
             rom.resize(file.tellg());
+            sram.resize(0x20000);
 
             file.seekg(0);
             file.read((char*)rom.data(), rom.size());
@@ -51,8 +52,6 @@ namespace snes {
             return true;
         }
 
-        void write(u32 addr, u8 value) {};
-
         u8 read(u32 addr, int size = 1) {
             u8 bank = (addr >> 16) & 0xff,
                page = (addr >> 8) & 0xff;
@@ -74,6 +73,7 @@ namespace snes {
 
                     return sram_read ? sram.at(addr % sram.size()) : rom.at(addr % rom.size());
                 } break;
+
                 case ROM_HIROM: {
                     // Mirror Q1, Q2 to Q3, Q4
                     if (BANKS(0x00, 0x7f)) bank += 0x80;
@@ -87,11 +87,37 @@ namespace snes {
                         sram_read = false;
                     }
 
+                    if (BANKS(0x80, 0xbf) && (page >= 0x60) && (page <= 0x7f)) {
+                        addr = (pb & 0x1fff) | ((bank & 0xf) << 13);
+
+                        _log(debug, "hirom sram read addr=%06x", addr);
+
+                        sram_read = true;
+                    }
+
                     return sram_read ? sram.at(addr % sram.size()) : rom.at(addr % rom.size());
                 } break;
             }
 
             return 0xff;
+        }
+
+        void write(u32 addr, u8 value) {
+            u8 bank = (addr >> 16) & 0xff,
+               page = (addr >> 8) & 0xff;
+            u16 pb = addr & 0xffff;
+            
+            switch (rom_type) {
+                case ROM_HIROM: {
+                    if (BANKS(0x80, 0xbf) && (page >= 0x60) && (page <= 0x7f)) {
+                        addr = (pb & 0x1fff) | ((bank & 0xf) << 13);
+
+                        _log(debug, "hirom sram write addr=%06x", addr);
+
+                        sram.at(addr % sram.size()) = value;
+                    }
+                } break;
+            }
         }
     }
 }
